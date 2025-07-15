@@ -1,6 +1,10 @@
 // API configuration
 const API_BASE_URL = "https://blog-worker.abdellah2019gg.workers.dev"
 
+// Cache configuration
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes in milliseconds
+const cache = new Map<string, { data: any; timestamp: number }>()
+
 export interface Article {
   id: string
   slug: string
@@ -76,8 +80,47 @@ export const mockComments: Comment[] = [
   },
 ]
 
-// Enhanced fetch with better error handling and retries
+// Cache helper functions
+function getCacheKey(url: string, options?: RequestInit): string {
+  return `${url}_${JSON.stringify(options || {})}`
+}
+
+function getCachedData(key: string): any | null {
+  const cached = cache.get(key)
+  if (!cached) return null
+
+  const isExpired = Date.now() - cached.timestamp > CACHE_DURATION
+  if (isExpired) {
+    cache.delete(key)
+    return null
+  }
+
+  return cached.data
+}
+
+function setCachedData(key: string, data: any): void {
+  cache.set(key, {
+    data,
+    timestamp: Date.now(),
+  })
+}
+
+// Enhanced fetch with better error handling, retries, and caching
 async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 3): Promise<Response> {
+  const cacheKey = getCacheKey(url, options)
+
+  // Check cache first for GET requests
+  if (!options.method || options.method === "GET") {
+    const cachedData = getCachedData(cacheKey)
+    if (cachedData) {
+      console.log(`Cache hit for: ${url}`)
+      return new Response(JSON.stringify(cachedData), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
+  }
+
   const defaultOptions: RequestInit = {
     headers: {
       "Content-Type": "application/json",
@@ -89,17 +132,25 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
 
   for (let i = 0; i < retries; i++) {
     try {
-      console.log(`Fetching: ${url}`, { attempt: i + 1, options: defaultOptions })
+      console.log(`Fetching: ${url}`, { attempt: i + 1 })
 
       const response = await fetch(url, defaultOptions)
 
       console.log(`Response status: ${response.status}`, {
         ok: response.ok,
         statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
       })
 
       if (response.ok) {
+        // Cache successful GET responses
+        if ((!options.method || options.method === "GET") && response.status === 200) {
+          const responseData = await response.json()
+          setCachedData(cacheKey, responseData)
+          return new Response(JSON.stringify(responseData), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          })
+        }
         return response
       }
 
@@ -190,7 +241,6 @@ export async function fetchArticles(): Promise<Article[]> {
 
     const response = await fetchWithRetry(`${API_BASE_URL}/api/articles`, {
       method: "GET",
-      next: { revalidate: 60 }, // Cache data for 60 seconds
     })
 
     const data = await response.json()
@@ -207,7 +257,7 @@ export async function fetchArticles(): Promise<Article[]> {
     return transformedArticles
   } catch (error) {
     console.error("Error fetching articles:", error)
-    throw error // Don't return fallback data, let the error bubble up
+    throw error
   }
 }
 
@@ -218,7 +268,6 @@ export async function fetchArticleBySlug(slug: string): Promise<Article | null> 
 
     const response = await fetchWithRetry(`${API_BASE_URL}/api/articles/${slug}`, {
       method: "GET",
-      next: { revalidate: 60 }, // Cache data for 60 seconds
     })
 
     const data = await response.json()
@@ -252,7 +301,6 @@ export async function fetchAdminArticles(password: string): Promise<Article[]> {
       headers: {
         Authorization: `Bearer ${password}`,
       },
-      cache: "no-store", // Admin data should always be fresh
     })
 
     const data = await response.json()
@@ -299,11 +347,13 @@ export async function createArticle(password: string, articleData: any): Promise
         Authorization: `Bearer ${password}`,
       },
       body: JSON.stringify(payload),
-      cache: "no-store", // Admin actions should not be cached
     })
 
     const result = await response.json()
     console.log("Create article response:", result)
+
+    // Clear cache after creating article
+    cache.clear()
   } catch (error) {
     console.error("Error creating article:", error)
     throw error
@@ -333,11 +383,13 @@ export async function updateArticle(password: string, id: string, articleData: a
         Authorization: `Bearer ${password}`,
       },
       body: JSON.stringify(payload),
-      cache: "no-store", // Admin actions should not be cached
     })
 
     const result = await response.json()
     console.log("Update article response:", result)
+
+    // Clear cache after updating article
+    cache.clear()
   } catch (error) {
     console.error("Error updating article:", error)
     throw error
@@ -353,11 +405,13 @@ export async function deleteArticle(password: string, id: string): Promise<void>
       headers: {
         Authorization: `Bearer ${password}`,
       },
-      cache: "no-store", // Admin actions should not be cached
     })
 
     const result = await response.json()
     console.log("Delete article response:", result)
+
+    // Clear cache after deleting article
+    cache.clear()
   } catch (error) {
     console.error("Error deleting article:", error)
     throw error
@@ -371,7 +425,6 @@ export async function checkApiHealth(): Promise<boolean> {
 
     const response = await fetchWithRetry(`${API_BASE_URL}/api/health`, {
       method: "GET",
-      cache: "no-store", // Health check should always be fresh
     })
 
     const data = await response.json()
@@ -382,4 +435,10 @@ export async function checkApiHealth(): Promise<boolean> {
     console.error("API health check failed:", error)
     return false
   }
+}
+
+// Clear cache function (useful for development)
+export function clearCache(): void {
+  cache.clear()
+  console.log("Cache cleared")
 }

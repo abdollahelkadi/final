@@ -5,9 +5,8 @@ import { FeaturedArticle } from "@/components/featured-article"
 import { fetchArticles } from "@/lib/api"
 import { TrendingTopics } from "@/components/trending-topics"
 import { NewsletterSignup } from "@/components/newsletter-signup"
-import { Suspense } from "react"
-
-export const runtime = "edge" // Enable Edge Runtime for dynamic fetching
+import { useEffect, useState, useCallback } from "react"
+import type { Article } from "@/lib/api"
 
 // Loading components
 function ArticleGridSkeleton() {
@@ -56,116 +55,136 @@ function FeaturedArticleSkeleton() {
   )
 }
 
-async function ArticlesContent() {
-  try {
-    const articles = await fetchArticles()
-    console.log("Fetched articles in page:", articles.length)
+function ArticlesContent() {
+  const [articles, setArticles] = useState<Article[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-    if (!articles || articles.length === 0) {
-      return (
-        <div className="text-center py-16">
-          <h2 className="text-2xl font-bold mb-4">No Articles Found</h2>
-          <p className="text-muted-foreground">
-            There are no published articles available at the moment. Please check back later.
-          </p>
-        </div>
-      )
+  const loadArticles = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      console.log("Loading articles...")
+
+      const fetchedArticles = await fetchArticles()
+      console.log("Fetched articles in page:", fetchedArticles.length)
+
+      setArticles(fetchedArticles)
+    } catch (error) {
+      console.error("Error in ArticlesContent:", error)
+      setError("Unable to load articles. Please try refreshing the page.")
+    } finally {
+      setLoading(false)
     }
+  }, [])
 
-    const publishedArticles = articles.filter((article) => article.published)
-    const featuredArticle = publishedArticles.find((article) => article.featured) || publishedArticles[0]
-    const latestArticles = publishedArticles.filter((article) => article.id !== featuredArticle?.id).slice(0, 6)
-    const popularArticles = publishedArticles.slice(0, 6)
+  useEffect(() => {
+    loadArticles()
+  }, [loadArticles])
 
+  if (loading) {
     return (
-      <>
-        {/* Featured Article */}
-        {featuredArticle && (
-          <section className="container mx-auto px-4 py-12">
-            <div className="text-center mb-12 animate-in fade-in-0 duration-1000">
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-red-800 via-red-600 to-blue-800 bg-clip-text text-transparent">
-                Welcome to TechBlog
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Discover the latest insights, tutorials, and trends in web development, programming, and technology.
-              </p>
-            </div>
-
-            <div className="animate-in slide-in-from-bottom-4 duration-1000 delay-300">
-              <FeaturedArticle article={featuredArticle} />
-            </div>
-          </section>
-        )}
-
-        {/* Trending Topics */}
-        <section className="bg-gradient-to-r from-red-50 to-blue-50 dark:from-gray-900/50 dark:to-gray-800/50 py-16">
-          <div className="container mx-auto px-4">
-            <TrendingTopics articles={articles} />
+      <div className="min-h-screen">
+        {/* Hero Section Skeleton */}
+        <section className="container mx-auto px-4 py-12">
+          <div className="text-center mb-12">
+            <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded mx-auto mb-6 w-96 animate-pulse" />
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mx-auto w-2/3 animate-pulse" />
           </div>
+          <FeaturedArticleSkeleton />
         </section>
 
-        {/* Latest Articles */}
+        {/* Articles Section Skeleton */}
         <section className="container mx-auto px-4 py-16">
-          {latestArticles.length > 0 && (
-            <div className="animate-in slide-in-from-bottom-4 duration-1000 delay-500 mb-16">
-              <ArticleGrid title="Latest Articles" articles={latestArticles} showViewAll />
-            </div>
-          )}
-
-          {popularArticles.length > 0 && (
-            <div className="animate-in slide-in-from-bottom-4 duration-1000 delay-700">
-              <ArticleGrid title="Popular This Week" articles={popularArticles} showViewAll />
-            </div>
-          )}
+          <div className="mb-8">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse" />
+          </div>
+          <ArticleGridSkeleton />
         </section>
-      </>
+      </div>
     )
-  } catch (error) {
-    console.error("Error in ArticlesContent:", error)
+  }
+
+  if (error) {
     return (
       <div className="text-center py-16">
         <h2 className="text-2xl font-bold mb-4 text-red-600">Unable to Load Articles</h2>
-        <p className="text-muted-foreground mb-4">
-          We're having trouble connecting to our content server. Please try refreshing the page.
-        </p>
+        <p className="text-muted-foreground mb-4">{error}</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={loadArticles}
           className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
         >
-          Refresh Page
+          Try Again
         </button>
       </div>
     )
   }
+
+  if (!articles || articles.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <h2 className="text-2xl font-bold mb-4">No Articles Found</h2>
+        <p className="text-muted-foreground">
+          There are no published articles available at the moment. Please check back later.
+        </p>
+      </div>
+    )
+  }
+
+  const publishedArticles = articles.filter((article) => article.published)
+  const featuredArticle = publishedArticles.find((article) => article.featured) || publishedArticles[0]
+  const latestArticles = publishedArticles.filter((article) => article.id !== featuredArticle?.id).slice(0, 6)
+  const popularArticles = publishedArticles.slice(0, 6)
+
+  return (
+    <>
+      {/* Featured Article */}
+      {featuredArticle && (
+        <section className="container mx-auto px-4 py-12">
+          <div className="text-center mb-12 animate-in fade-in-0 duration-1000">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-red-800 via-red-600 to-blue-800 bg-clip-text text-transparent">
+              Welcome to TechBlog
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Discover the latest insights, tutorials, and trends in web development, programming, and technology.
+            </p>
+          </div>
+
+          <div className="animate-in slide-in-from-bottom-4 duration-1000 delay-300">
+            <FeaturedArticle article={featuredArticle} />
+          </div>
+        </section>
+      )}
+
+      {/* Trending Topics */}
+      <section className="bg-gradient-to-r from-red-50 to-blue-50 dark:from-gray-900/50 dark:to-gray-800/50 py-16">
+        <div className="container mx-auto px-4">
+          <TrendingTopics articles={articles} />
+        </div>
+      </section>
+
+      {/* Latest Articles */}
+      <section className="container mx-auto px-4 py-16">
+        {latestArticles.length > 0 && (
+          <div className="animate-in slide-in-from-bottom-4 duration-1000 delay-500 mb-16">
+            <ArticleGrid title="Latest Articles" articles={latestArticles} showViewAll />
+          </div>
+        )}
+
+        {popularArticles.length > 0 && (
+          <div className="animate-in slide-in-from-bottom-4 duration-1000 delay-700">
+            <ArticleGrid title="Popular This Week" articles={popularArticles} showViewAll />
+          </div>
+        )}
+      </section>
+    </>
+  )
 }
 
 export default function HomePage() {
   return (
     <div className="min-h-screen">
-      <Suspense
-        fallback={
-          <div className="min-h-screen">
-            {/* Hero Section Skeleton */}
-            <section className="container mx-auto px-4 py-12">
-              <div className="text-center mb-12">
-                <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded mx-auto mb-6 w-96 animate-pulse" />
-                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mx-auto w-2/3 animate-pulse" />
-              </div>
-              <FeaturedArticleSkeleton />
-            </section>
-
-            {/* Articles Section Skeleton */}
-            <section className="container mx-auto px-4 py-16">
-              <div className="mb-8">
-                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse" />
-              </div>
-              <ArticleGridSkeleton />
-            </section>
-          </div>
-        }
-      >
-        <ArticlesContent />
-      </Suspense>
+      <ArticlesContent />
 
       {/* Newsletter Signup */}
       <section className="bg-gradient-to-r from-red-800 to-blue-800 py-16">

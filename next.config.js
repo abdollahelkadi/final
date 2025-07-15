@@ -4,7 +4,6 @@ const nextConfig = {
   experimental: {
     // Enable optimized package imports
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
-    // serverActions is enabled by default in Next.js 15, no need to explicitly set it here.
   },
 
   // Transpile specific packages that might have issues with React 19 or Next.js bundling
@@ -71,6 +70,16 @@ const nextConfig = {
           },
         ],
       },
+      // Cache static assets
+      {
+        source: "/api/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=300, s-maxage=300",
+          },
+        ],
+      },
     ]
   },
 
@@ -107,6 +116,15 @@ const nextConfig = {
     SITE_NAME: "TechBlog",
     SITE_URL: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000",
   },
+
+  // Enable static optimization
+  output: "standalone",
+
+  // Optimize for performance
+  swcMinify: true,
+
+  // Enable React strict mode
+  reactStrictMode: true,
 }
 
 module.exports = nextConfig

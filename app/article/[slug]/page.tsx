@@ -8,10 +8,7 @@ import { RelatedArticles } from "@/components/related-articles"
 import { fetchArticleBySlug, fetchArticles, mockComments } from "@/lib/api"
 import { notFound } from "next/navigation"
 import { Separator } from "@/components/ui/separator"
-import { Suspense } from "react"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
-
-export const runtime = "edge" // Enable Edge Runtime for dynamic fetching
 
 interface ArticlePageProps {
   params: {
@@ -19,56 +16,77 @@ interface ArticlePageProps {
   }
 }
 
-function ArticlePageSkeleton() {
-  return (
-    <div className="min-h-screen">
-      {/* Hero Section Skeleton */}
-      <div className="relative h-96 bg-gray-200 dark:bg-gray-700 animate-pulse">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-        <div className="absolute inset-0 flex items-end">
-          <div className="container mx-auto px-4 pb-12">
-            <div className="max-w-4xl space-y-4">
-              <div className="h-6 bg-white/20 rounded w-24" />
-              <div className="space-y-2">
-                <div className="h-12 bg-white/20 rounded w-3/4" />
-                <div className="h-12 bg-white/20 rounded w-1/2" />
-              </div>
-              <div className="space-y-2">
-                <div className="h-4 bg-white/20 rounded" />
-                <div className="h-4 bg-white/20 rounded w-5/6" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+// Enable static generation with ISR
+export const revalidate = 3600 // Revalidate every hour
+export const dynamic = "force-static"
 
-      {/* Content Skeleton */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-          <div className="space-y-4">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+// Generate static params for popular articles
+export async function generateStaticParams() {
+  try {
+    const articles = await fetchArticles()
+    const publishedArticles = articles.filter((article) => article.published)
+
+    // Generate static pages for the first 10 articles
+    return publishedArticles.slice(0, 10).map((article) => ({
+      slug: article.slug,
+    }))
+  } catch (error) {
+    console.error("Error generating static params:", error)
+    return []
+  }
 }
 
-async function ArticleContent({ slug }: { slug: string }) {
+// Generate metadata for SEO
+export async function generateMetadata({ params }: ArticlePageProps) {
   try {
-    console.log("Fetching article for slug:", slug)
-    const article = await fetchArticleBySlug(slug)
+    const article = await fetchArticleBySlug(params.slug)
 
     if (!article) {
-      console.log("Article not found for slug:", slug)
+      return {
+        title: "Article Not Found",
+        description: "The requested article could not be found.",
+      }
+    }
+
+    return {
+      title: `${article.title} | TechBlog`,
+      description: article.excerpt,
+      openGraph: {
+        title: article.title,
+        description: article.excerpt,
+        images: [article.image],
+        type: "article",
+        authors: [article.author],
+        publishedTime: article.created_at,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: article.title,
+        description: article.excerpt,
+        images: [article.image],
+      },
+    }
+  } catch (error) {
+    return {
+      title: "Article | TechBlog",
+      description: "Read the latest articles on TechBlog",
+    }
+  }
+}
+
+export default async function ArticlePage({ params }: ArticlePageProps) {
+  try {
+    console.log("Fetching article for slug:", params.slug)
+    const article = await fetchArticleBySlug(params.slug)
+
+    if (!article) {
+      console.log("Article not found for slug:", params.slug)
       notFound()
     }
 
     console.log("Article found:", article.title)
 
+    // Fetch related articles
     const allArticles = await fetchArticles()
     const relatedArticles = allArticles
       .filter((a) => a.category === article.category && a.id !== article.id && a.published)
@@ -80,7 +98,7 @@ async function ArticleContent({ slug }: { slug: string }) {
       <div className="min-h-screen">
         {/* Hero Section */}
         <div className="relative h-96 overflow-hidden">
-          <Image src={article.image || "/placeholder.svg"} alt={article.title} fill className="object-cover" />
+          <Image src={article.image || "/placeholder.svg"} alt={article.title} fill className="object-cover" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
           <div className="absolute inset-0 flex items-end">
@@ -204,12 +222,4 @@ async function ArticleContent({ slug }: { slug: string }) {
       </div>
     )
   }
-}
-
-export default function ArticlePage({ params }: ArticlePageProps) {
-  return (
-    <Suspense fallback={<ArticlePageSkeleton />}>
-      <ArticleContent slug={params.slug} />
-    </Suspense>
-  )
 }
