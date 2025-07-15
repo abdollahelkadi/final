@@ -1,10 +1,6 @@
 // API configuration
 const API_BASE_URL = "https://blog-worker.abdellah2019gg.workers.dev"
 
-// Cache configuration
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes in milliseconds
-const cache = new Map<string, { data: any; timestamp: number }>()
-
 export interface Article {
   id: string
   slug: string
@@ -26,107 +22,15 @@ export interface Article {
   category: string
 }
 
-export interface Comment {
-  id: string
-  articleId: string
-  author: string
-  avatar: string
-  content: string
-  date: string
-  likes: number
-}
-
-// Mock comments for now (since we haven't implemented comments in the worker yet)
-export const mockComments: Comment[] = [
-  {
-    id: "1",
-    articleId: "1",
-    author: "John Doe",
-    avatar: "/placeholder.svg?height=40&width=40",
-    content:
-      "Excellent guide! The explanation of Next.js 15 features is very comprehensive. The code examples really helped me understand the concepts better.",
-    date: "2 hours ago",
-    likes: 12,
-  },
-  {
-    id: "2",
-    articleId: "1",
-    author: "Jane Smith",
-    avatar: "/placeholder.svg?height=40&width=40",
-    content:
-      "Thanks for sharing this detailed tutorial. I was looking for a complete guide on Next.js 15 and this covers everything I needed to know.",
-    date: "4 hours ago",
-    likes: 8,
-  },
-  {
-    id: "3",
-    articleId: "2",
-    author: "Mike Johnson",
-    avatar: "/placeholder.svg?height=40&width=40",
-    content:
-      "Great insights into modern CSS! The Grid vs Flexbox comparison was particularly helpful. Looking forward to more content like this.",
-    date: "1 day ago",
-    likes: 15,
-  },
-  {
-    id: "4",
-    articleId: "3",
-    author: "Sarah Wilson",
-    avatar: "/placeholder.svg?height=40&width=40",
-    content:
-      "As a TypeScript developer, I found these best practices very valuable. The utility types section was especially useful for my current project.",
-    date: "2 days ago",
-    likes: 23,
-  },
-]
-
-// Cache helper functions
-function getCacheKey(url: string, options?: RequestInit): string {
-  return `${url}_${JSON.stringify(options || {})}`
-}
-
-function getCachedData(key: string): any | null {
-  const cached = cache.get(key)
-  if (!cached) return null
-
-  const isExpired = Date.now() - cached.timestamp > CACHE_DURATION
-  if (isExpired) {
-    cache.delete(key)
-    return null
-  }
-
-  return cached.data
-}
-
-function setCachedData(key: string, data: any): void {
-  cache.set(key, {
-    data,
-    timestamp: Date.now(),
-  })
-}
-
-// Enhanced fetch with better error handling, retries, and caching
+// Enhanced fetch with better error handling and retries (no caching)
 async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 3): Promise<Response> {
-  const cacheKey = getCacheKey(url, options)
-
-  // Check cache first for GET requests
-  if (!options.method || options.method === "GET") {
-    const cachedData = getCachedData(cacheKey)
-    if (cachedData) {
-      console.log(`Cache hit for: ${url}`)
-      return new Response(JSON.stringify(cachedData), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-  }
-
   const defaultOptions: RequestInit = {
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
       ...options.headers,
     },
+    cache: "no-store", // Always fetch fresh data
     ...options,
   }
 
@@ -142,15 +46,6 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
       })
 
       if (response.ok) {
-        // Cache successful GET responses
-        if ((!options.method || options.method === "GET") && response.status === 200) {
-          const responseData = await response.json()
-          setCachedData(cacheKey, responseData)
-          return new Response(JSON.stringify(responseData), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          })
-        }
         return response
       }
 
@@ -351,9 +246,6 @@ export async function createArticle(password: string, articleData: any): Promise
 
     const result = await response.json()
     console.log("Create article response:", result)
-
-    // Clear cache after creating article
-    cache.clear()
   } catch (error) {
     console.error("Error creating article:", error)
     throw error
@@ -387,9 +279,6 @@ export async function updateArticle(password: string, id: string, articleData: a
 
     const result = await response.json()
     console.log("Update article response:", result)
-
-    // Clear cache after updating article
-    cache.clear()
   } catch (error) {
     console.error("Error updating article:", error)
     throw error
@@ -409,9 +298,6 @@ export async function deleteArticle(password: string, id: string): Promise<void>
 
     const result = await response.json()
     console.log("Delete article response:", result)
-
-    // Clear cache after deleting article
-    cache.clear()
   } catch (error) {
     console.error("Error deleting article:", error)
     throw error
@@ -435,10 +321,4 @@ export async function checkApiHealth(): Promise<boolean> {
     console.error("API health check failed:", error)
     return false
   }
-}
-
-// Clear cache function (useful for development)
-export function clearCache(): void {
-  cache.clear()
-  console.log("Cache cleared")
 }

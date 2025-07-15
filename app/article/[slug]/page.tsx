@@ -1,11 +1,10 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Calendar, Clock, User, ArrowLeft, Share2, Bookmark, Heart, Eye } from "lucide-react"
+import { Calendar, Clock, User, ArrowLeft, Share2, Bookmark, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CommentSection } from "@/components/comment-section"
 import { RelatedArticles } from "@/components/related-articles"
-import { fetchArticleBySlug, fetchArticles, mockComments } from "@/lib/api"
+import { fetchArticleBySlug, fetchArticles } from "@/lib/api"
 import { notFound } from "next/navigation"
 import { Separator } from "@/components/ui/separator"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
@@ -16,25 +15,8 @@ interface ArticlePageProps {
   }
 }
 
-// Enable static generation with ISR
-export const revalidate = 3600 // Revalidate every hour
-export const dynamic = "force-static"
-
-// Generate static params for popular articles
-export async function generateStaticParams() {
-  try {
-    const articles = await fetchArticles()
-    const publishedArticles = articles.filter((article) => article.published)
-
-    // Generate static pages for the first 10 articles
-    return publishedArticles.slice(0, 10).map((article) => ({
-      slug: article.slug,
-    }))
-  } catch (error) {
-    console.error("Error generating static params:", error)
-    return []
-  }
-}
+// Disable static generation to always fetch fresh data
+export const dynamic = "force-dynamic"
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: ArticlePageProps) {
@@ -91,8 +73,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     const relatedArticles = allArticles
       .filter((a) => a.category === article.category && a.id !== article.id && a.published)
       .slice(0, 3)
-
-    const articleComments = mockComments.filter((c) => c.articleId === article.id)
 
     return (
       <div className="min-h-screen">
@@ -151,14 +131,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="hover:bg-red-50 hover:border-red-300 transition-all duration-300 bg-transparent"
-                >
-                  <Heart className="h-4 w-4 mr-2" />
-                  24
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
                   className="hover:bg-green-50 hover:border-green-300 transition-all duration-300 bg-transparent"
                 >
                   <Share2 className="h-4 w-4 mr-2" />
@@ -192,11 +164,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             <article className="prose prose-lg prose-gray dark:prose-invert max-w-none mb-16">
               <MarkdownRenderer content={article.content} />
             </article>
-
-            <Separator className="my-12" />
-
-            {/* Comments Section */}
-            <CommentSection comments={articleComments} />
 
             <Separator className="my-12" />
 

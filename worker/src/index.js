@@ -22,18 +22,13 @@ const adminAuth = async (c, next) => {
   await next()
 }
 
-// Cache headers helper
-const setCacheHeaders = (c, maxAge = 300) => {
-  c.header("Cache-Control", `public, max-age=${maxAge}, s-maxage=${maxAge}`)
-  c.header("CDN-Cache-Control", `public, max-age=${maxAge}`)
-  c.header("Vercel-CDN-Cache-Control", `public, max-age=${maxAge}`)
-}
-
 // Get all published articles
 app.get("/api/articles", async (c) => {
   try {
-    // Set cache headers for 5 minutes
-    setCacheHeaders(c, 300)
+    // No cache headers - always serve fresh data
+    c.header("Cache-Control", "no-cache, no-store, must-revalidate")
+    c.header("Pragma", "no-cache")
+    c.header("Expires", "0")
 
     const { results } = await c.env.DB.prepare(`
       SELECT id, slug, title, author, summary, tags, cover_image, created_at, updated_at
@@ -68,8 +63,10 @@ app.get("/api/articles", async (c) => {
 // Get single article by slug
 app.get("/api/articles/:slug", async (c) => {
   try {
-    // Set cache headers for 1 hour
-    setCacheHeaders(c, 3600)
+    // No cache headers - always serve fresh data
+    c.header("Cache-Control", "no-cache, no-store, must-revalidate")
+    c.header("Pragma", "no-cache")
+    c.header("Expires", "0")
 
     const slug = c.req.param("slug")
     const { results } = await c.env.DB.prepare(`
@@ -228,7 +225,7 @@ app.delete("/api/admin/articles/:id", adminAuth, async (c) => {
 
 // Health check
 app.get("/api/health", (c) => {
-  setCacheHeaders(c, 60) // Cache health check for 1 minute
+  c.header("Cache-Control", "no-cache, no-store, must-revalidate")
   return c.json({ status: "OK", timestamp: new Date().toISOString() })
 })
 
