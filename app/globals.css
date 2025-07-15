@@ -4,53 +4,48 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 0 0% 100%; /* White */
+    --foreground: 0 0% 0%; /* Black */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 0%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 0 0% 0%; /* Black for primary actions */
+    --primary-foreground: 0 0% 100%; /* White text on black primary */
+    --secondary: 0 0% 95%; /* Light gray */
+    --secondary-foreground: 0 0% 10%; /* Dark gray text on secondary */
+    --muted: 0 0% 90%; /* Medium gray */
+    --muted-foreground: 0 0% 40%; /* Darker gray text on muted */
+    --accent: 0 0% 95%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 84.2% 60.2%; /* Red for destructive actions */
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 217.2 91.2% 59.8%;
+    --border: 0 0% 80%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 0%; /* Black ring */
     --radius: 0.75rem;
-
-    /* FlexiFeeds Brand Colors - Blue/Purple Theme */
-    --brand-blue: 217.2 91.2% 59.8%;
-    --brand-purple: 262.1 83.3% 57.8%;
-    --brand-indigo: 243.4 75.4% 58.6%;
   }
 
   .dark {
-    --background: 0 0% 0%;
-    --foreground: 210 40% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --background: 0 0% 0%; /* True Black */
+    --foreground: 0 0% 100%; /* White */
+    --card: 0 0% 5%; /* Very dark gray */
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 0% 100%; /* White for primary actions */
+    --primary-foreground: 0 0% 0%; /* Black text on white primary */
+    --secondary: 0 0% 15%; /* Dark gray */
+    --secondary-foreground: 0 0% 90%; /* Light gray text on secondary */
+    --muted: 0 0% 20%; /* Darker gray */
+    --muted-foreground: 0 0% 60%; /* Lighter gray text on muted */
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 90%;
+    --destructive: 0 62.8% 30.6%; /* Darker red for destructive actions */
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 217.2 91.2% 59.8%;
+    --border: 0 0% 25%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 100%; /* White ring */
   }
 }
 
@@ -148,18 +143,6 @@
     }
   }
 
-  /* Brand gradient utilities */
-  .bg-brand-gradient {
-    background: linear-gradient(135deg, hsl(217.2 91.2% 59.8%), hsl(262.1 83.3% 57.8%), hsl(243.4 75.4% 58.6%));
-  }
-
-  .text-brand-gradient {
-    background: linear-gradient(135deg, hsl(217.2 91.2% 59.8%), hsl(262.1 83.3% 57.8%), hsl(243.4 75.4% 58.6%));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
   /* Enhanced scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
@@ -172,12 +155,12 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, hsl(217.2 91.2% 59.8%), hsl(262.1 83.3% 57.8%));
+    background: hsl(var(--foreground));
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, hsl(217.2 91.2% 69.8%), hsl(262.1 83.3% 67.8%));
+    background: hsl(var(--muted-foreground));
   }
 
   /* Smooth scrolling */
@@ -190,18 +173,12 @@
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
   }
-
-  /* Remove blur effects */
-  .no-blur {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
 }
 
 /* Custom selection colors */
 ::selection {
-  background: hsl(217.2 91.2% 59.8% / 0.2);
-  color: hsl(var(--foreground));
+  background: hsl(var(--foreground) / 0.2);
+  color: hsl(var(--background));
 }
 
 /* Loading animations */
@@ -234,7 +211,7 @@
 }
 
 .prose a {
-  @apply text-blue-600 hover:text-blue-700 transition-colors;
+  @apply text-foreground hover:text-muted-foreground transition-colors;
 }
 
 .prose code {
@@ -246,5 +223,5 @@
 }
 
 .prose blockquote {
-  @apply border-l-4 border-blue-500 pl-4 italic text-muted-foreground;
+  @apply border-l-4 border-foreground pl-4 italic text-muted-foreground;
 }

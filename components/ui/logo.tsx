@@ -1,25 +1,24 @@
+import type React from "react"
 import { cn } from "@/lib/utils"
 import { Rss, Zap } from "lucide-react"
 
-interface LogoProps {
+interface LogoProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string
-  size?: "sm" | "md" | "lg" | "xl"
+  size?: "sm" | "md" | "lg"
   variant?: "default" | "white" | "dark"
 }
 
-export function Logo({ className, size = "md", variant = "default" }: LogoProps) {
+export function Logo({ className, size = "md", variant = "default", ...props }: LogoProps) {
   const sizeClasses = {
     sm: "h-6 w-6",
     md: "h-8 w-8",
     lg: "h-10 w-10",
-    xl: "h-12 w-12",
   }
 
   const textSizeClasses = {
     sm: "text-lg",
     md: "text-xl",
     lg: "text-2xl",
-    xl: "text-3xl",
   }
 
   const colorClasses = {
@@ -34,20 +33,21 @@ export function Logo({ className, size = "md", variant = "default" }: LogoProps)
     dark: "from-gray-800 via-gray-900 to-black",
   }
 
+  const iconSize = size === "sm" ? "h-5 w-5" : size === "lg" ? "h-9 w-9" : "h-7 w-7"
+  const textSize = size === "sm" ? "text-lg" : size === "lg" ? "text-3xl" : "text-2xl"
+
   return (
-    <div className={cn("flex items-center space-x-3", className)}>
-      {/* Logo Icon */}
+    <div className={cn("flex items-center space-x-2", className)} {...props}>
       <div className={cn("relative rounded-xl p-2 shadow-lg", sizeClasses[size])}>
         <div className={cn("absolute inset-0 rounded-xl bg-gradient-to-br shadow-inner", colorClasses[variant])} />
         <div className="relative flex items-center justify-center">
           <div className="relative">
-            <Rss className={cn("relative z-10 text-white", sizeClasses[size])} />
-            <Zap className={cn("absolute top-0 left-0 text-white/30", sizeClasses[size])} />
+            <Rss className={cn("relative z-10 text-white", iconSize)} />
+            <Zap className={cn("absolute top-0 left-0 text-white/30", iconSize)} />
           </div>
         </div>
       </div>
 
-      {/* Brand Text */}
       <div className="flex flex-col">
         <span
           className={cn(
@@ -58,7 +58,7 @@ export function Logo({ className, size = "md", variant = "default" }: LogoProps)
         >
           FlexiFeeds
         </span>
-        {size === "lg" || size === "xl" ? (
+        {size === "lg" ? (
           <span className="text-xs text-muted-foreground font-medium tracking-wide">Smart Content Hub</span>
         ) : null}
       </div>

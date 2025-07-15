@@ -23,13 +23,12 @@ export function Header() {
   const navItems = [
     { href: "/", label: "Home" },
     { href: "/categories", label: "Categories" },
-    { href: "/trending", label: "Trending" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ]
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 border-b bg-background/95">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -46,7 +45,7 @@ export function Header() {
                 className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 group"
               >
                 {item.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 group-hover:w-full" />
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-foreground transition-all duration-300 group-hover:w-full" />
               </Link>
             ))}
           </nav>
@@ -108,7 +107,7 @@ export function Header() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t bg-background/95 backdrop-blur animate-in slide-in-from-top-2 duration-300">
+          <div className="lg:hidden border-t bg-background/95 animate-in slide-in-from-top-2 duration-300">
             <div className="px-4 py-6 space-y-6">
               {/* Mobile Search */}
               <SearchBar />
@@ -119,7 +118,7 @@ export function Header() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="block text-lg font-medium hover:text-blue-600 transition-colors duration-300"
+                    className="block text-lg font-medium hover:text-foreground transition-colors duration-300"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {item.label}
