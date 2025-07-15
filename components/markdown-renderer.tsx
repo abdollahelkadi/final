@@ -1,8 +1,6 @@
 "use client"
 
 import ReactMarkdown from "react-markdown"
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
-import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism"
 
 interface MarkdownRendererProps {
   content: string
@@ -62,31 +60,23 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
         strong: ({ children }) => <strong className="font-bold text-gray-900 dark:text-gray-100">{children}</strong>,
         em: ({ children }) => <em className="italic text-gray-800 dark:text-gray-200">{children}</em>,
 
-        // Code
+        // Code - Simple styling without external dependencies
         code: ({ node, inline, className, children, ...props }) => {
           const match = /language-(\w+)/.exec(className || "")
           const language = match ? match[1] : ""
 
           return !inline && match ? (
-            <div className="mb-6 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-              <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                {language}
-              </div>
-              <SyntaxHighlighter
-                style={tomorrow}
-                language={language}
-                PreTag="div"
-                className="!bg-gray-900 !m-0"
-                customStyle={{
-                  margin: 0,
-                  padding: "1.5rem",
-                  fontSize: "0.875rem",
-                  lineHeight: "1.5",
-                }}
-                {...props}
-              >
-                {String(children).replace(/\n$/, "")}
-              </SyntaxHighlighter>
+            <div className="mb-6 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+              {language && (
+                <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                  {language}
+                </div>
+              )}
+              <pre className="p-4 overflow-x-auto">
+                <code className="text-sm font-mono text-gray-800 dark:text-gray-200 whitespace-pre" {...props}>
+                  {children}
+                </code>
+              </pre>
             </div>
           ) : (
             <code
@@ -97,6 +87,13 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             </code>
           )
         },
+
+        // Pre - for code blocks
+        pre: ({ children }) => (
+          <div className="mb-6 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+            <div className="p-4 overflow-x-auto">{children}</div>
+          </div>
+        ),
 
         // Blockquotes
         blockquote: ({ children }) => (
