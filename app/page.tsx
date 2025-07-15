@@ -8,6 +8,9 @@ import { NewsletterSignup } from "@/components/newsletter-signup"
 import { useEffect, useState, useCallback } from "react"
 import type { Article } from "@/lib/api"
 
+// Required for Cloudflare Pages
+export const runtime = "edge"
+
 // Loading components
 function ArticleGridSkeleton() {
   return (

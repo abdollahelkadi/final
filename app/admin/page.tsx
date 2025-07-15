@@ -26,6 +26,9 @@ import { Plus, Edit, Trash2, Eye, EyeOff, Lock, LogOut } from "lucide-react"
 import { fetchAdminArticles, createArticle, updateArticle, deleteArticle, type Article } from "@/lib/api"
 import { toast } from "sonner"
 
+// Required for Cloudflare Pages
+export const runtime = "edge"
+
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [password, setPassword] = useState("")

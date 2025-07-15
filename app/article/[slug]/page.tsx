@@ -9,6 +9,9 @@ import { notFound } from "next/navigation"
 import { Separator } from "@/components/ui/separator"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
 
+// Required for Cloudflare Pages
+export const runtime = "edge"
+
 interface ArticlePageProps {
   params: {
     slug: string
