@@ -1,17 +1,14 @@
 import type React from "react"
 import { cn } from "@/lib/utils"
-import Image from "next/image"
 import { Rss, Zap } from "lucide-react"
 
 interface LogoProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string
   size?: "sm" | "md" | "lg"
   variant?: "default" | "white" | "dark"
-  width?: number
-  height?: number
 }
 
-export function Logo({ className, size = "md", variant = "default", width = 32, height = 32, ...props }: LogoProps) {
+export function Logo({ className, size = "md", variant = "default", ...props }: LogoProps) {
   const sizeClasses = {
     sm: "h-6 w-6",
     md: "h-8 w-8",
@@ -40,20 +37,16 @@ export function Logo({ className, size = "md", variant = "default", width = 32, 
   const textSize = size === "sm" ? "text-lg" : size === "lg" ? "text-3xl" : "text-2xl"
 
   return (
-    <div className={cn("flex items-center", className)} {...props}>
-      {variant === "default" ? (
-        <div className={cn("relative rounded-xl p-2 shadow-lg", sizeClasses[size])}>
-          <div className={cn("absolute inset-0 rounded-xl bg-gradient-to-br shadow-inner", colorClasses[variant])} />
-          <div className="relative flex items-center justify-center">
-            <div className="relative">
-              <Rss className={cn("relative z-10 text-white", iconSize)} />
-              <Zap className={cn("absolute top-0 left-0 text-white/30", iconSize)} />
-            </div>
+    <div className={cn("flex items-center space-x-2", className)} {...props}>
+      <div className={cn("relative rounded-xl p-2 shadow-lg", sizeClasses[size])}>
+        <div className={cn("absolute inset-0 rounded-xl bg-gradient-to-br shadow-inner", colorClasses[variant])} />
+        <div className="relative flex items-center justify-center">
+          <div className="relative">
+            <Rss className={cn("relative z-10 text-white", iconSize)} />
+            <Zap className={cn("absolute top-0 left-0 text-white/30", iconSize)} />
           </div>
         </div>
-      ) : (
-        <Image src="/logo.jpg" alt="FlexiFeeds Logo" width={width} height={height} className="rounded-md" />
-      )}
+      </div>
 
       <div className="flex flex-col">
         <span

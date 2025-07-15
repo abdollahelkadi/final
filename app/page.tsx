@@ -1,19 +1,13 @@
 "use client"
 import { ArticleCard } from "@/components/article-card"
-import { useEffect } from "react"
-
-import { useCallback } from "react"
-
-import { useState } from "react"
-
 import { fetchArticles } from "@/lib/api"
-import { Separator } from "@/components/ui/separator"
+import { useEffect, useState, useCallback } from "react"
+import type { Article } from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import { Zap, Star } from "lucide-react"
+import { Zap, Star, ArrowRight } from "lucide-react"
 
 // Required for Cloudflare Pages
 export const runtime = "edge"
-export const dynamic = "force-dynamic"
 
 // Skeleton for consistent article grid
 function ArticleGridSkeleton() {
@@ -45,9 +39,9 @@ function ArticleGridSkeleton() {
 }
 
 function ArticlesContent() {
-  const [articles, setArticles] = useState([])
+  const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   const loadArticles = useCallback(async () => {
     try {
@@ -122,27 +116,43 @@ function ArticlesContent() {
   return (
     <>
       {/* All Articles Grid */}
-      <main className="container mx-auto px-4 py-12">
-        <section className="mb-12">
-          <h2 className="text-3xl font-bold mb-8 text-center">Latest Articles</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {publishedArticles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
+      <section className="container mx-auto px-4 py-16">
+        {publishedArticles.length > 0 && (
+          <div className="animate-in slide-in-from-bottom-4 duration-1000 delay-500">
+            <div className="flex items-center justify-between mb-12">
+              <div>
+                <h2 className="text-3xl font-bold text-foreground mb-2">All Articles</h2>
+                <p className="text-muted-foreground">Explore our latest content</p>
+              </div>
+              <Button variant="outline" className="hover:bg-accent hover:border-border bg-transparent">
+                View All Articles
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+
+            {/* Consistent Grid Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {publishedArticles.map((article, index) => (
+                <div
+                  key={article.id}
+                  className="animate-in slide-in-from-bottom-4 duration-700"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <ArticleCard article={article} />
+                </div>
+              ))}
+            </div>
           </div>
-        </section>
-        <Separator className="my-12" />
-      </main>
+        )}
+      </section>
     </>
   )
 }
 
-export default async function HomePage() {
-  const articles = await fetchArticles()
-
+export default function HomePage() {
   return (
     <div className="min-h-screen">
-      <ArticlesContent articles={articles} />
+      <ArticlesContent />
     </div>
   )
 }
