@@ -1,0 +1,18 @@
+{
+  "name": "blog-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for blog articles API",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "dependencies": {
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "wrangler": "^3.28.0"
+  }
+}
