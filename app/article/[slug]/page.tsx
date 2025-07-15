@@ -1,12 +1,11 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Calendar, Clock, User, ArrowLeft, Share2, Bookmark, Eye } from "lucide-react"
+import { Calendar, Clock, User, ArrowLeft, TrendingUp, BookOpen, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { RelatedArticles } from "@/components/related-articles"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { fetchArticleBySlug, fetchArticles } from "@/lib/api"
 import { notFound } from "next/navigation"
-import { Separator } from "@/components/ui/separator"
 import { HtmlRenderer } from "@/components/html-renderer"
 
 // Required for Cloudflare Pages
@@ -34,7 +33,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
     }
 
     return {
-      title: `${article.title} | TechBlog`,
+      title: `${article.title} | FlexiFeeds`,
       description: article.excerpt,
       openGraph: {
         title: article.title,
@@ -53,8 +52,8 @@ export async function generateMetadata({ params }: ArticlePageProps) {
     }
   } catch (error) {
     return {
-      title: "Article | TechBlog",
-      description: "Read the latest articles on TechBlog",
+      title: "Article | FlexiFeeds",
+      description: "Read the latest articles on FlexiFeeds",
     }
   }
 }
@@ -75,46 +74,44 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     const allArticles = await fetchArticles()
     const relatedArticles = allArticles
       .filter((a) => a.category === article.category && a.id !== article.id && a.published)
-      .slice(0, 3)
+      .slice(0, 4)
 
     return (
-      <div className="min-h-screen">
-        {/* Hero Section */}
-        <div className="relative h-96 overflow-hidden">
+      <div className="min-h-screen bg-background">
+        {/* Clean Hero Section */}
+        <div className="relative h-[50vh] min-h-80 overflow-hidden">
           <Image src={article.image || "/placeholder.svg"} alt={article.title} fill className="object-cover" priority />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+          {/* Light overlay for light mode, darker for dark mode */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent dark:from-background/90 dark:via-background/40" />
 
           <div className="absolute inset-0 flex items-end">
-            <div className="container mx-auto px-4 pb-12">
-              <Button variant="ghost" asChild className="mb-6 text-white hover:bg-white/20">
+            <div className="container mx-auto px-4 pb-8">
+              <Button variant="ghost" asChild className="mb-6 text-foreground hover:bg-accent">
                 <Link href="/">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Home
                 </Link>
               </Button>
 
-              <div className="flex items-center space-x-2 mb-4">
-                <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30">{article.category}</Badge>
-                {article.featured && (
-                  <Badge className="bg-gradient-to-r from-red-600 to-red-800 text-white">Featured</Badge>
-                )}
-              </div>
+              <Badge className="mb-4 bg-primary text-primary-foreground">{article.category}</Badge>
 
-              <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">{article.title}</h1>
-
-              <p className="text-xl text-white/90 mb-6 leading-relaxed">{article.excerpt}</p>
+              <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4 leading-tight max-w-4xl">
+                {article.title}
+              </h1>
             </div>
           </div>
         </div>
 
-        <div className="container mx-auto px-4 py-12">
-          <div className="max-w-4xl mx-auto">
-            {/* Article Meta */}
-            <div className="flex items-center justify-between flex-wrap gap-4 mb-12 p-6 bg-gradient-to-r from-red-50 to-blue-50 dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl">
-              <div className="flex items-center space-x-6 text-sm text-muted-foreground">
+        {/* Main Content Layout */}
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left Content - Article */}
+            <div className="lg:w-2/3 space-y-8">
+              {/* Article Meta */}
+              <div className="flex items-center space-x-6 text-sm text-muted-foreground border-b pb-6">
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4" />
-                  <span className="font-medium">{article.author}</span>
+                  <span className="font-medium text-foreground">{article.author}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Calendar className="h-4 w-4" />
@@ -124,54 +121,116 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   <Clock className="h-4 w-4" />
                   <span>{article.readTime}</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Eye className="h-4 w-4" />
-                  <span>1.2k views</span>
-                </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hover:bg-green-50 hover:border-green-300 transition-all duration-300 bg-transparent"
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 bg-transparent"
-                >
-                  <Bookmark className="h-4 w-4 mr-2" />
-                  Save
-                </Button>
+              {/* Article Excerpt */}
+              <div className="text-lg text-muted-foreground leading-relaxed border-l-4 border-primary pl-6">
+                {article.excerpt}
+              </div>
+
+              {/* Article Content */}
+              <article className="prose prose-lg dark:prose-invert max-w-none">
+                <HtmlRenderer content={article.content} />
+              </article>
+            </div>
+
+            {/* Right Sidebar - Static */}
+            <div className="lg:w-1/3">
+              <div className="sticky top-24 space-y-6">
+                {/* Article Stats */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Article Stats
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Views</span>
+                      <span className="font-semibold">1,234</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Reading Time</span>
+                      <span className="font-semibold">{article.readTime}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Published</span>
+                      <span className="font-semibold">{article.date}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Author Info */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      About the Author
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-foreground">{article.author}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Experienced writer specializing in {article.category.toLowerCase()} topics with a passion for
+                        sharing knowledge and insights.
+                      </p>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-muted-foreground">Featured Author</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Related Articles */}
+                {relatedArticles.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <BookOpen className="h-5 w-5" />
+                        Related Articles
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {relatedArticles.slice(0, 3).map((relatedArticle) => (
+                        <Link key={relatedArticle.id} href={`/article/${relatedArticle.slug}`} className="block group">
+                          <div className="flex gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+                            <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+                              <Image
+                                src={relatedArticle.image || "/placeholder.svg"}
+                                alt={relatedArticle.title}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h5 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
+                                {relatedArticle.title}
+                              </h5>
+                              <p className="text-xs text-muted-foreground mt-1">{relatedArticle.readTime}</p>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Category Badge */}
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center">
+                      <Badge variant="outline" className="text-sm px-4 py-2">
+                        #{article.category}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground mt-2">Explore more articles in this category</p>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
-
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {article.tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="outline"
-                  className="hover:bg-red-50 hover:border-red-300 dark:hover:bg-red-950 transition-all duration-300 cursor-pointer"
-                >
-                  #{tag}
-                </Badge>
-              ))}
-            </div>
-
-            {/* Article Content */}
-            <article className="mb-16">
-              <HtmlRenderer content={article.content} />
-            </article>
-
-            <Separator className="my-12" />
-
-            {/* Related Articles */}
-            <RelatedArticles articles={relatedArticles} />
           </div>
         </div>
       </div>
@@ -179,13 +238,16 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   } catch (error) {
     console.error("Error loading article:", error)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-red-600">Error Loading Article</h1>
-          <p className="text-muted-foreground mb-4">
-            We're having trouble loading this article. Please try again later.
-          </p>
-          <Button asChild>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="mb-6">
+            <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">⚠️</span>
+            </div>
+            <h1 className="text-2xl font-bold mb-2 text-destructive">Error Loading Article</h1>
+            <p className="text-muted-foreground">We're having trouble loading this article. Please try again later.</p>
+          </div>
+          <Button asChild variant="default">
             <Link href="/">Return Home</Link>
           </Button>
         </div>

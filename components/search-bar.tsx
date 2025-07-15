@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 
 export function SearchBar() {
   const [isOpen, setIsOpen] = useState(false)
-  const [query, setQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
   const [results, setResults] = useState<Article[]>([])
   const [articles, setArticles] = useState<Article[]>([])
   const searchRef = useRef<HTMLDivElement>(null)
@@ -23,20 +23,20 @@ export function SearchBar() {
   }, [])
 
   useEffect(() => {
-    if (query.trim()) {
+    if (searchQuery.trim()) {
       const filtered = articles.filter(
         (article) =>
           article.published &&
-          (article.title.toLowerCase().includes(query.toLowerCase()) ||
-            article.excerpt.toLowerCase().includes(query.toLowerCase()) ||
-            article.category.toLowerCase().includes(query.toLowerCase()) ||
-            article.tags.some((tag) => tag.toLowerCase().includes(query.toLowerCase()))),
+          (article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            article.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            article.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            article.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))),
       )
       setResults(filtered)
     } else {
       setResults([])
     }
-  }, [query, articles])
+  }, [searchQuery, articles])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -52,29 +52,35 @@ export function SearchBar() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       setIsOpen(false)
-      setQuery("")
+      setSearchQuery("")
     }
   }
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    // TODO: Implement search functionality
+    console.log("Searching for:", searchQuery)
+  }
+
   return (
-    <div ref={searchRef} className="relative">
-      <div className="relative">
+    <form onSubmit={handleSearch} className="relative flex items-center">
+      <div ref={searchRef} className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          type="text"
+          type="search"
           placeholder="Search articles..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          className="pl-10 pr-10 w-64 transition-all duration-300 focus:w-80 focus:border-red-500 focus:ring-red-500"
+          className="pl-10 pr-4 w-64 md:w-80 transition-all duration-300 focus:w-96 focus:border-red-500 focus:ring-red-500"
         />
-        {query && (
+        {searchQuery && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => {
-              setQuery("")
+              setSearchQuery("")
               setResults([])
             }}
             className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
@@ -84,7 +90,7 @@ export function SearchBar() {
         )}
       </div>
 
-      {isOpen && (query || results.length > 0) && (
+      {isOpen && (searchQuery || results.length > 0) && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto animate-in slide-in-from-top-2 duration-300">
           {results.length > 0 ? (
             <div className="p-2">
@@ -97,7 +103,7 @@ export function SearchBar() {
                   href={`/article/${article.slug}`}
                   onClick={() => {
                     setIsOpen(false)
-                    setQuery("")
+                    setSearchQuery("")
                   }}
                   className="block p-3 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-md transition-colors duration-200"
                 >
@@ -116,14 +122,14 @@ export function SearchBar() {
                 </Link>
               ))}
             </div>
-          ) : query ? (
+          ) : searchQuery ? (
             <div className="p-4 text-center text-muted-foreground">
               <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No articles found for "{query}"</p>
+              <p className="text-sm">No articles found for "{searchQuery}"</p>
             </div>
           ) : null}
         </div>
       )}
-    </div>
+    </form>
   )
 }

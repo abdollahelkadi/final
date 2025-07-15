@@ -95,7 +95,7 @@ export function HtmlRenderer({ content }: HtmlRendererProps) {
 
   return (
     <div
-      className="prose prose-lg prose-gray dark:prose-invert max-w-none"
+      className="prose prose-lg dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-em:text-foreground prose-blockquote:text-muted-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:text-foreground prose-a:text-primary hover:prose-a:text-primary/80"
       dangerouslySetInnerHTML={{ __html: processHtml(content) }}
     />
   )

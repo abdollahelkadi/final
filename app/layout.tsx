@@ -10,7 +10,7 @@ import { Toaster } from "sonner"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "TechBlog - Latest Articles & Insights",
+  title: "Flexifeeds - Modern Blog Platform",
   description: "A modern blog platform for technology articles, tutorials, and insights",
     generator: 'v0.dev'
 }
@@ -22,6 +22,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" type="image/png" href="/favicon.png" />
+      </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <div className="min-h-screen flex flex-col">
