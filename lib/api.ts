@@ -1,5 +1,5 @@
 // API configuration
-const API_BASE_URL = "https://blog-worker.abdellah2019gg.workers.dev"
+const API_BASE_URL = "http://api.flexifeeds.me"
 
 export interface Article {
   id: string
