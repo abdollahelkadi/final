@@ -1,5 +1,5 @@
-// API configuration
-const API_BASE_URL = "http://api.flexifeeds.me"
+// API configuration - Update this to match your actual worker URL
+const API_BASE_URL = "https://api.flexifeeds.me"
 
 export interface Article {
   id: string
@@ -49,17 +49,17 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
         return response
       }
 
+      // Log the error response for debugging
+      const errorText = await response.text()
+      console.error(`HTTP ${response.status} Error:`, errorText)
+
       // If it's a client error (4xx), don't retry
       if (response.status >= 400 && response.status < 500) {
-        const errorText = await response.text()
-        console.error(`Client error ${response.status}:`, errorText)
         throw new Error(`HTTP ${response.status}: ${errorText}`)
       }
 
       // For server errors (5xx), we'll retry
       if (i === retries - 1) {
-        const errorText = await response.text()
-        console.error(`Server error ${response.status} (final attempt):`, errorText)
         throw new Error(`HTTP ${response.status}: ${errorText}`)
       }
 
