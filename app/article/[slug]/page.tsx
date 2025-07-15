@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Calendar, Clock, User, ArrowLeft, Share2, Bookmark, Eye } from "lucide-react"
+import { Calendar, Clock, User, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { RelatedArticles } from "@/components/related-articles"
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
     }
 
     return {
-      title: `${article.title} | TechBlog`,
+      title: `${article.title} | FlexiFeeds`,
       description: article.excerpt,
       openGraph: {
         title: article.title,
@@ -53,8 +53,8 @@ export async function generateMetadata({ params }: ArticlePageProps) {
     }
   } catch (error) {
     return {
-      title: "Article | TechBlog",
-      description: "Read the latest articles on TechBlog",
+      title: "Article | FlexiFeeds",
+      description: "Read the latest articles on FlexiFeeds",
     }
   }
 }
@@ -94,10 +94,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               </Button>
 
               <div className="flex items-center space-x-2 mb-4">
-                <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30">{article.category}</Badge>
-                {article.featured && (
-                  <Badge className="bg-gradient-to-r from-red-600 to-red-800 text-white">Featured</Badge>
-                )}
+                <Badge className="bg-white/20 text-white border-white/30">{article.category}</Badge>
+                {article.featured && <Badge className="bg-foreground text-background">Featured</Badge>}
               </div>
 
               <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">{article.title}</h1>
@@ -110,7 +108,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto">
             {/* Article Meta */}
-            <div className="flex items-center justify-between flex-wrap gap-4 mb-12 p-6 bg-gradient-to-r from-red-50 to-blue-50 dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl">
+            <div className="flex items-center justify-between flex-wrap gap-4 mb-12 p-6 bg-secondary rounded-xl">
               <div className="flex items-center space-x-6 text-sm text-muted-foreground">
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4" />
@@ -124,29 +122,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   <Clock className="h-4 w-4" />
                   <span>{article.readTime}</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Eye className="h-4 w-4" />
-                  <span>1.2k views</span>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hover:bg-green-50 hover:border-green-300 transition-all duration-300 bg-transparent"
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 bg-transparent"
-                >
-                  <Bookmark className="h-4 w-4 mr-2" />
-                  Save
-                </Button>
               </div>
             </div>
 
@@ -156,7 +131,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <Badge
                   key={tag}
                   variant="outline"
-                  className="hover:bg-red-50 hover:border-red-300 dark:hover:bg-red-950 transition-all duration-300 cursor-pointer"
+                  className="hover:bg-accent hover:border-border transition-all duration-300 cursor-pointer"
                 >
                   #{tag}
                 </Badge>
@@ -181,7 +156,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-red-600">Error Loading Article</h1>
+          <h1 className="text-2xl font-bold mb-4 text-destructive">Error Loading Article</h1>
           <p className="text-muted-foreground mb-4">
             We're having trouble loading this article. Please try again later.
           </p>

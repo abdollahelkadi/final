@@ -2,21 +2,21 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, Clock, User, Bookmark, Share2 } from "lucide-react"
+import { Calendar, Clock, User, Share2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Article } from "@/lib/types"
-import { useState } from "react"
 
 interface ArticleCardProps {
   article: Article
 }
 
 export function ArticleCard({ article }: ArticleCardProps) {
-  const [isBookmarked, setIsBookmarked] = useState(false)
-
   return (
-    <article className="group border rounded-xl overflow-hidden bg-card hover:shadow-lg transition-all duration-500 transform hover:-translate-y-1">
+    <Link
+      href={`/article/${article.slug}`}
+      className="group block border rounded-xl overflow-hidden bg-card hover:shadow-lg transition-all duration-500 transform hover:-translate-y-1"
+    >
       <div className="relative aspect-[16/10] overflow-hidden">
         <Image
           src={article.image || "/placeholder.svg"}
@@ -39,17 +39,18 @@ export function ArticleCard({ article }: ArticleCardProps) {
           <Badge className="absolute top-3 right-3 bg-foreground text-background border-0">Featured</Badge>
         )}
 
-        {/* Hover Actions */}
+        {/* Hover Actions (Share only) */}
         <div className="absolute bottom-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <Button
             size="icon"
             variant="secondary"
             className="h-8 w-8 bg-white/90 hover:bg-white"
-            onClick={() => setIsBookmarked(!isBookmarked)}
+            onClick={(e) => {
+              e.preventDefault() // Prevent navigation when clicking the share button
+              // Add share functionality here
+              console.log("Share article:", article.title)
+            }}
           >
-            <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current text-foreground" : ""}`} />
-          </Button>
-          <Button size="icon" variant="secondary" className="h-8 w-8 bg-white/90 hover:bg-white">
             <Share2 className="h-4 w-4" />
           </Button>
         </div>
@@ -71,7 +72,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
 
         {/* Title */}
         <h3 className="font-bold text-lg mb-3 line-clamp-2 group-hover:text-muted-foreground transition-colors duration-300 leading-tight">
-          <Link href={`/article/${article.slug}`}>{article.title}</Link>
+          {article.title} {/* Title is now part of the overall link */}
         </h3>
 
         {/* Excerpt */}
@@ -98,6 +99,6 @@ export function ArticleCard({ article }: ArticleCardProps) {
           </div>
         </div>
       </div>
-    </article>
+    </Link>
   )
 }

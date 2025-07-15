@@ -1,20 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { Moon, Sun, Menu, X, Bell, User } from "lucide-react"
+import { Moon, Sun, Menu, X } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { SearchBar } from "@/components/search-bar"
 import { Logo } from "@/components/ui/logo"
 import { useState } from "react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
 
 export function Header() {
   const { theme, setTheme } = useTheme()
@@ -33,11 +25,13 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center group">
-            <Logo size="md" className="transition-transform duration-300 group-hover:scale-105" />
+            <Logo width={36} height={36} className="transition-transform duration-300 group-hover:scale-105" />
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center space-x-8 mr-auto ml-8">
+            {" "}
+            {/* Adjusted for left positioning */}
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -53,36 +47,6 @@ export function Header() {
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
             <SearchBar />
-
-            {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-red-500 hover:bg-red-600">3</Badge>
-            </Button>
-
-            {/* User Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <User className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/bookmarks">Bookmarks</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings">Settings</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/admin">Admin Panel</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
 
             {/* Enhanced Theme Toggle */}
             <Button
@@ -128,15 +92,6 @@ export function Header() {
 
               {/* Mobile Actions */}
               <div className="flex items-center justify-between pt-4 border-t">
-                <div className="flex items-center space-x-4">
-                  <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="h-5 w-5" />
-                    <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-red-500">3</Badge>
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
-                  </Button>
-                </div>
                 <Button
                   variant="ghost"
                   size="icon"
