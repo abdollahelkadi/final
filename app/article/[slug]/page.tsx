@@ -7,7 +7,7 @@ import { RelatedArticles } from "@/components/related-articles"
 import { fetchArticleBySlug, fetchArticles } from "@/lib/api"
 import { notFound } from "next/navigation"
 import { Separator } from "@/components/ui/separator"
-import { MarkdownRenderer } from "@/components/markdown-renderer"
+import { HtmlRenderer } from "@/components/html-renderer"
 
 // Required for Cloudflare Pages
 export const runtime = "edge"
@@ -164,8 +164,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </div>
 
             {/* Article Content */}
-            <article className="prose prose-lg prose-gray dark:prose-invert max-w-none mb-16">
-              <MarkdownRenderer content={article.content} />
+            <article className="mb-16">
+              <HtmlRenderer content={article.content} />
             </article>
 
             <Separator className="my-12" />
