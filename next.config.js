@@ -42,7 +42,7 @@ const nextConfig = {
   },
 
   // Performance optimizations
-  swcMinify: true,
+  // swcMinify: true, // Removed as per instructions
 
   // Headers for security and performance
   async headers() {
