@@ -4,9 +4,11 @@ const nextConfig = {
   experimental: {
     // Enable optimized package imports
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
-    // Enable server actions
-    serverActions: true,
+    // serverActions is enabled by default in Next.js 15, no need to explicitly set it here.
   },
+
+  // Transpile specific packages that might have issues with React 19 or Next.js bundling
+  transpilePackages: ["react-markdown"],
 
   // ESLint configuration
   eslint: {
@@ -40,9 +42,6 @@ const nextConfig = {
       },
     ],
   },
-
-  // Performance optimizations
-  swcMinify: true,
 
   // Headers for security and performance
   async headers() {

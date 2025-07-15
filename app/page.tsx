@@ -7,6 +7,8 @@ import { TrendingTopics } from "@/components/trending-topics"
 import { NewsletterSignup } from "@/components/newsletter-signup"
 import { Suspense } from "react"
 
+export const runtime = "edge" // Enable Edge Runtime for dynamic fetching
+
 // Loading components
 function ArticleGridSkeleton() {
   return (

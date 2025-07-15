@@ -190,7 +190,7 @@ export async function fetchArticles(): Promise<Article[]> {
 
     const response = await fetchWithRetry(`${API_BASE_URL}/api/articles`, {
       method: "GET",
-      cache: "no-store", // Always fetch fresh data
+      next: { revalidate: 60 }, // Cache data for 60 seconds
     })
 
     const data = await response.json()
@@ -218,7 +218,7 @@ export async function fetchArticleBySlug(slug: string): Promise<Article | null> 
 
     const response = await fetchWithRetry(`${API_BASE_URL}/api/articles/${slug}`, {
       method: "GET",
-      cache: "no-store",
+      next: { revalidate: 60 }, // Cache data for 60 seconds
     })
 
     const data = await response.json()
@@ -252,6 +252,7 @@ export async function fetchAdminArticles(password: string): Promise<Article[]> {
       headers: {
         Authorization: `Bearer ${password}`,
       },
+      cache: "no-store", // Admin data should always be fresh
     })
 
     const data = await response.json()
@@ -298,6 +299,7 @@ export async function createArticle(password: string, articleData: any): Promise
         Authorization: `Bearer ${password}`,
       },
       body: JSON.stringify(payload),
+      cache: "no-store", // Admin actions should not be cached
     })
 
     const result = await response.json()
@@ -331,6 +333,7 @@ export async function updateArticle(password: string, id: string, articleData: a
         Authorization: `Bearer ${password}`,
       },
       body: JSON.stringify(payload),
+      cache: "no-store", // Admin actions should not be cached
     })
 
     const result = await response.json()
@@ -350,6 +353,7 @@ export async function deleteArticle(password: string, id: string): Promise<void>
       headers: {
         Authorization: `Bearer ${password}`,
       },
+      cache: "no-store", // Admin actions should not be cached
     })
 
     const result = await response.json()
@@ -367,6 +371,7 @@ export async function checkApiHealth(): Promise<boolean> {
 
     const response = await fetchWithRetry(`${API_BASE_URL}/api/health`, {
       method: "GET",
+      cache: "no-store", // Health check should always be fresh
     })
 
     const data = await response.json()

@@ -8,8 +8,10 @@ import { RelatedArticles } from "@/components/related-articles"
 import { fetchArticleBySlug, fetchArticles, mockComments } from "@/lib/api"
 import { notFound } from "next/navigation"
 import { Separator } from "@/components/ui/separator"
-import ReactMarkdown from "react-markdown"
 import { Suspense } from "react"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
+
+export const runtime = "edge" // Enable Edge Runtime for dynamic fetching
 
 interface ArticlePageProps {
   params: {
@@ -83,25 +85,23 @@ async function ArticleContent({ slug }: { slug: string }) {
 
           <div className="absolute inset-0 flex items-end">
             <div className="container mx-auto px-4 pb-12">
-              <div className="max-w-4xl">
-                <Button variant="ghost" asChild className="mb-6 text-white hover:bg-white/20">
-                  <Link href="/">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Home
-                  </Link>
-                </Button>
+              <Button variant="ghost" asChild className="mb-6 text-white hover:bg-white/20">
+                <Link href="/">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Home
+                </Link>
+              </Button>
 
-                <div className="flex items-center space-x-2 mb-4">
-                  <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30">{article.category}</Badge>
-                  {article.featured && (
-                    <Badge className="bg-gradient-to-r from-red-600 to-red-800 text-white">Featured</Badge>
-                  )}
-                </div>
-
-                <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">{article.title}</h1>
-
-                <p className="text-xl text-white/90 mb-6 leading-relaxed">{article.excerpt}</p>
+              <div className="flex items-center space-x-2 mb-4">
+                <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30">{article.category}</Badge>
+                {article.featured && (
+                  <Badge className="bg-gradient-to-r from-red-600 to-red-800 text-white">Featured</Badge>
+                )}
               </div>
+
+              <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">{article.title}</h1>
+
+              <p className="text-xl text-white/90 mb-6 leading-relaxed">{article.excerpt}</p>
             </div>
           </div>
         </div>
@@ -172,36 +172,7 @@ async function ArticleContent({ slug }: { slug: string }) {
 
             {/* Article Content */}
             <article className="prose prose-lg prose-gray dark:prose-invert max-w-none mb-16">
-              <ReactMarkdown
-                components={{
-                  h1: ({ children }) => (
-                    <h1 className="text-3xl font-bold mb-6 mt-8 text-gray-900 dark:text-gray-100">{children}</h1>
-                  ),
-                  h2: ({ children }) => (
-                    <h2 className="text-2xl font-semibold mb-4 mt-8 text-gray-900 dark:text-gray-100">{children}</h2>
-                  ),
-                  h3: ({ children }) => (
-                    <h3 className="text-xl font-semibold mb-3 mt-6 text-gray-900 dark:text-gray-100">{children}</h3>
-                  ),
-                  p: ({ children }) => (
-                    <p className="mb-6 leading-relaxed text-gray-700 dark:text-gray-300">{children}</p>
-                  ),
-                  ul: ({ children }) => <ul className="mb-6 pl-6 space-y-2">{children}</ul>,
-                  li: ({ children }) => <li className="text-gray-700 dark:text-gray-300">{children}</li>,
-                  code: ({ children }) => (
-                    <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm font-mono text-blue-600 dark:text-blue-400">
-                      {children}
-                    </code>
-                  ),
-                  pre: ({ children }) => (
-                    <pre className="bg-gray-900 dark:bg-gray-950 p-6 rounded-lg overflow-x-auto mb-6 border">
-                      {children}
-                    </pre>
-                  ),
-                }}
-              >
-                {article.content}
-              </ReactMarkdown>
+              <MarkdownRenderer content={article.content} />
             </article>
 
             <Separator className="my-12" />

@@ -1,3 +1,5 @@
+"use client" // Mark as a client component
+
 import Link from "next/link"
 import Image from "next/image"
 import { Calendar, Clock, User, Heart } from "lucide-react"
