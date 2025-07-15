@@ -7,7 +7,7 @@ const nextConfig = {
   },
 
   // Transpile specific packages that might have issues with React 19 or Next.js bundling
-  transpilePackages: ["react-markdown"],
+  transpilePackages: ["react-markdown", "react-syntax-highlighter"],
 
   // ESLint configuration
   eslint: {
@@ -125,6 +125,20 @@ const nextConfig = {
 
   // Enable React strict mode
   reactStrictMode: true,
+
+  // Webpack configuration for better module resolution
+  webpack: (config, { isServer }) => {
+    // Handle syntax highlighter on the client side
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        os: false,
+      }
+    }
+    return config
+  },
 }
 
 module.exports = nextConfig
