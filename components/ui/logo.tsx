@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import { Rss, Zap } from "lucide-react"
 
 interface LogoProps {
   className?: string
@@ -22,13 +23,13 @@ export function Logo({ className, size = "md", variant = "default" }: LogoProps)
   }
 
   const colorClasses = {
-    default: "from-orange-500 via-red-500 to-pink-500",
+    default: "from-blue-600 via-purple-600 to-indigo-600",
     white: "from-white via-gray-100 to-gray-200",
     dark: "from-gray-800 via-gray-900 to-black",
   }
 
   const textColorClasses = {
-    default: "from-orange-600 via-red-600 to-pink-600",
+    default: "from-blue-600 via-purple-600 to-indigo-600",
     white: "text-white",
     dark: "from-gray-800 via-gray-900 to-black",
   }
@@ -36,28 +37,13 @@ export function Logo({ className, size = "md", variant = "default" }: LogoProps)
   return (
     <div className={cn("flex items-center space-x-3", className)}>
       {/* Logo Icon */}
-      <div className={cn("relative rounded-xl p-2", sizeClasses[size])}>
-        <div className={cn("absolute inset-0 rounded-xl bg-gradient-to-br", colorClasses[variant])} />
-        <div className="relative">
-          <svg viewBox="0 0 24 24" fill="none" className={cn("relative z-10", sizeClasses[size])}>
-            {/* RSS/Feed Icon with modern twist */}
-            <path d="M4 11a9 9 0 0 1 9 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path
-              d="M4 4a16 16 0 0 1 16 16"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <circle cx="5" cy="19" r="1" fill="white" />
-            {/* Additional modern elements */}
-            <path
-              d="M12 2L14 8L20 6L16 12L22 14L14 16L16 22L10 18L8 24L6 16L0 18L4 12L-2 10L6 8L4 2L10 6L12 2Z"
-              fill="white"
-              opacity="0.3"
-              transform="scale(0.3) translate(20, 20)"
-            />
-          </svg>
+      <div className={cn("relative rounded-xl p-2 shadow-lg", sizeClasses[size])}>
+        <div className={cn("absolute inset-0 rounded-xl bg-gradient-to-br shadow-inner", colorClasses[variant])} />
+        <div className="relative flex items-center justify-center">
+          <div className="relative">
+            <Rss className={cn("relative z-10 text-white", sizeClasses[size])} />
+            <Zap className={cn("absolute top-0 left-0 text-white/30", sizeClasses[size])} />
+          </div>
         </div>
       </div>
 

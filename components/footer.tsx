@@ -2,11 +2,10 @@ import Link from "next/link"
 import { Github, Twitter, Linkedin, Mail, Heart, Rss } from "lucide-react"
 import { Logo } from "@/components/ui/logo"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 
 export function Footer() {
   return (
-    <footer className="border-t bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <footer className="border-t bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-black">
       <div className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand Section */}
@@ -17,20 +16,9 @@ export function Footer() {
               the web. Stay informed, stay ahead.
             </p>
 
-            {/* Newsletter Signup */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Stay Updated</h4>
-              <div className="flex space-x-2 max-w-sm">
-                <Input placeholder="Enter your email" className="bg-background border-border" />
-                <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600">
-                  Subscribe
-                </Button>
-              </div>
-            </div>
-
             {/* Social Links */}
             <div className="flex space-x-4">
-              <Button variant="ghost" size="icon" className="hover:bg-orange-100 dark:hover:bg-orange-900/20">
+              <Button variant="ghost" size="icon" className="hover:bg-blue-100 dark:hover:bg-blue-900/20">
                 <Twitter className="h-5 w-5" />
               </Button>
               <Button variant="ghost" size="icon" className="hover:bg-blue-100 dark:hover:bg-blue-900/20">
@@ -42,7 +30,7 @@ export function Footer() {
               <Button variant="ghost" size="icon" className="hover:bg-green-100 dark:hover:bg-green-900/20">
                 <Mail className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-orange-100 dark:hover:bg-orange-900/20">
+              <Button variant="ghost" size="icon" className="hover:bg-purple-100 dark:hover:bg-purple-900/20">
                 <Rss className="h-5 w-5" />
               </Button>
             </div>
@@ -63,7 +51,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-muted-foreground hover:text-orange-600 transition-colors duration-200"
+                    className="text-muted-foreground hover:text-blue-600 transition-colors duration-200"
                   >
                     {link.label}
                   </Link>
@@ -87,7 +75,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-muted-foreground hover:text-orange-600 transition-colors duration-200"
+                    className="text-muted-foreground hover:text-blue-600 transition-colors duration-200"
                   >
                     {link.label}
                   </Link>

@@ -1,14 +1,11 @@
 "use client"
-
-import { ArticleGrid } from "@/components/article-grid"
 import { ArticleCard } from "@/components/article-card"
 import { fetchArticles } from "@/lib/api"
 import { TrendingTopics } from "@/components/trending-topics"
-import { NewsletterSignup } from "@/components/newsletter-signup"
 import { useEffect, useState, useCallback } from "react"
 import type { Article } from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import { TrendingUp, Zap, Star, ArrowRight } from "lucide-react"
+import { TrendingUp, Zap, Star, ArrowRight, Sparkles } from "lucide-react"
 
 // Required for Cloudflare Pages
 export const runtime = "edge"
@@ -16,26 +13,26 @@ export const runtime = "edge"
 // Enhanced loading components
 function HeroSkeleton() {
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/20 dark:to-red-900/20 animate-pulse">
-      <div className="grid lg:grid-cols-2 gap-0 min-h-[500px]">
-        <div className="p-8 lg:p-16 flex flex-col justify-center">
-          <div className="space-y-6">
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 animate-pulse">
+      <div className="aspect-[21/9] relative">
+        <div className="absolute inset-0 bg-gray-300 dark:bg-gray-600" />
+        <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-16">
+          <div className="space-y-6 max-w-2xl">
             <div className="flex space-x-2">
-              <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-20" />
-              <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-16" />
+              <div className="h-6 bg-gray-400 dark:bg-gray-500 rounded w-20" />
+              <div className="h-6 bg-gray-400 dark:bg-gray-500 rounded w-16" />
             </div>
             <div className="space-y-3">
-              <div className="h-10 bg-gray-300 dark:bg-gray-600 rounded" />
-              <div className="h-10 bg-gray-300 dark:bg-gray-600 rounded w-3/4" />
+              <div className="h-10 bg-gray-400 dark:bg-gray-500 rounded" />
+              <div className="h-10 bg-gray-400 dark:bg-gray-500 rounded w-3/4" />
             </div>
             <div className="space-y-2">
-              <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded" />
-              <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-5/6" />
+              <div className="h-4 bg-gray-400 dark:bg-gray-500 rounded" />
+              <div className="h-4 bg-gray-400 dark:bg-gray-500 rounded w-5/6" />
             </div>
-            <div className="h-12 bg-gray-300 dark:bg-gray-600 rounded w-40" />
+            <div className="h-12 bg-gray-400 dark:bg-gray-500 rounded w-40" />
           </div>
         </div>
-        <div className="h-64 lg:h-auto bg-gray-300 dark:bg-gray-600" />
       </div>
     </div>
   )
@@ -43,7 +40,7 @@ function HeroSkeleton() {
 
 function ArticleGridSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="border rounded-xl overflow-hidden bg-card animate-pulse">
           <div className="aspect-[16/10] bg-gray-200 dark:bg-gray-700" />
@@ -129,7 +126,7 @@ function ArticlesContent() {
           <p className="text-muted-foreground mb-6">{error}</p>
           <Button
             onClick={loadArticles}
-            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
           >
             Try Again
           </Button>
@@ -156,7 +153,7 @@ function ArticlesContent() {
 
   const publishedArticles = articles.filter((article) => article.published)
   const featuredArticle = publishedArticles.find((article) => article.featured) || publishedArticles[0]
-  const latestArticles = publishedArticles.filter((article) => article.id !== featuredArticle?.id).slice(0, 6)
+  const latestArticles = publishedArticles.filter((article) => article.id !== featuredArticle?.id).slice(0, 9)
   const trendingArticles = publishedArticles.slice(0, 4)
 
   return (
@@ -164,11 +161,11 @@ function ArticlesContent() {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-16 animate-in fade-in-0 duration-1000">
-          <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-orange-100 to-red-100 dark:from-orange-900/20 dark:to-red-900/20 px-4 py-2 rounded-full mb-6">
-            <Zap className="h-4 w-4 text-orange-600" />
-            <span className="text-sm font-medium text-orange-600">Welcome to FlexiFeeds</span>
+          <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 px-4 py-2 rounded-full mb-6">
+            <Sparkles className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-600">Welcome to FlexiFeeds</span>
           </div>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent leading-tight">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent leading-tight">
             Your Smart Content Hub
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
@@ -180,27 +177,27 @@ function ArticlesContent() {
         {/* Featured Article Hero */}
         {featuredArticle && (
           <div className="animate-in slide-in-from-bottom-4 duration-1000 delay-300">
-            <ArticleCard article={featuredArticle} variant="featured" />
+            <ArticleCard article={featuredArticle} variant="large" />
           </div>
         )}
       </section>
 
       {/* Trending Section */}
-      <section className="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-gray-900/50 dark:to-gray-800/50 py-16">
+      <section className="bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 dark:from-gray-950 dark:to-black py-16">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg">
+              <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
                 <TrendingUp className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Trending Now
                 </h2>
                 <p className="text-muted-foreground">Most popular articles this week</p>
               </div>
             </div>
-            <Button variant="outline" className="hover:bg-orange-50 hover:border-orange-300 bg-transparent">
+            <Button variant="outline" className="hover:bg-blue-50 hover:border-blue-300 bg-transparent">
               View All Trending
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
@@ -223,26 +220,38 @@ function ArticlesContent() {
       {/* Latest Articles */}
       <section className="container mx-auto px-4 py-16">
         {latestArticles.length > 0 && (
-          <div className="animate-in slide-in-from-bottom-4 duration-1000 delay-500 mb-16">
+          <div className="animate-in slide-in-from-bottom-4 duration-1000 delay-500">
             <div className="flex items-center justify-between mb-12">
               <div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                   Latest Articles
                 </h2>
                 <p className="text-muted-foreground">Fresh content just for you</p>
               </div>
-              <Button variant="outline" className="hover:bg-orange-50 hover:border-orange-300 bg-transparent">
+              <Button variant="outline" className="hover:bg-blue-50 hover:border-blue-300 bg-transparent">
                 View All Articles
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
-            <ArticleGrid title="" articles={latestArticles} showViewAll={false} />
+
+            {/* Consistent Grid Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {latestArticles.map((article, index) => (
+                <div
+                  key={article.id}
+                  className="animate-in slide-in-from-bottom-4 duration-700"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <ArticleCard article={article} />
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </section>
 
       {/* Topics Section */}
-      <section className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 py-16">
+      <section className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-black py-16">
         <div className="container mx-auto px-4">
           <TrendingTopics articles={articles} />
         </div>
@@ -255,13 +264,6 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       <ArticlesContent />
-
-      {/* Newsletter Signup */}
-      <section className="bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 py-16">
-        <div className="container mx-auto px-4">
-          <NewsletterSignup />
-        </div>
-      </section>
     </div>
   )
 }

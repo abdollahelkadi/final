@@ -29,7 +29,7 @@ export function Header() {
   ]
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -46,7 +46,7 @@ export function Header() {
                 className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 group"
               >
                 {item.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-300 group-hover:w-full" />
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 group-hover:w-full" />
               </Link>
             ))}
           </nav>
@@ -85,15 +85,17 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Theme Toggle */}
+            {/* Enhanced Theme Toggle */}
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-              className="transition-transform duration-300 hover:scale-110"
+              className="relative overflow-hidden transition-all duration-300 hover:scale-110 hover:bg-accent"
             >
-              <Sun className="h-5 w-5 rotate-0 scale-100 transition-all duration-500 dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all duration-500 dark:rotate-0 dark:scale-100" />
+              <div className="relative w-5 h-5">
+                <Sun className="absolute inset-0 h-5 w-5 rotate-0 scale-100 transition-all duration-500 dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute inset-0 h-5 w-5 rotate-90 scale-0 transition-all duration-500 dark:rotate-0 dark:scale-100" />
+              </div>
               <span className="sr-only">Toggle theme</span>
             </Button>
           </div>
@@ -106,7 +108,7 @@ export function Header() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t bg-background/95 backdrop-blur-md animate-in slide-in-from-top-2 duration-300">
+          <div className="lg:hidden border-t bg-background/95 backdrop-blur animate-in slide-in-from-top-2 duration-300">
             <div className="px-4 py-6 space-y-6">
               {/* Mobile Search */}
               <SearchBar />
@@ -117,7 +119,7 @@ export function Header() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="block text-lg font-medium hover:text-orange-600 transition-colors duration-300"
+                    className="block text-lg font-medium hover:text-blue-600 transition-colors duration-300"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {item.label}
@@ -136,9 +138,16 @@ export function Header() {
                     <User className="h-5 w-5" />
                   </Button>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
-                  <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                  <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                  className="relative overflow-hidden transition-all duration-300 hover:scale-110"
+                >
+                  <div className="relative w-5 h-5">
+                    <Sun className="absolute inset-0 h-5 w-5 rotate-0 scale-100 transition-all duration-500 dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute inset-0 h-5 w-5 rotate-90 scale-0 transition-all duration-500 dark:rotate-0 dark:scale-100" />
+                  </div>
                 </Button>
               </div>
             </div>
