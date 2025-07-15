@@ -3,39 +3,63 @@ import { cors } from "hono/cors"
 
 const app = new Hono()
 
-// Enable CORS for all routes
+// Enable CORS for all routes with more permissive settings
 app.use(
   "*",
   cors({
     origin: "*",
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization"],
+    allowHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    credentials: false,
   }),
 )
+
+// Add a simple logging middleware for debugging
+app.use("*", async (c, next) => {
+  console.log(`${c.req.method} ${c.req.url}`)
+  console.log("Headers:", Object.fromEntries(c.req.raw.headers.entries()))
+  await next()
+})
 
 // Middleware to check admin password
 const adminAuth = async (c, next) => {
   const password = c.req.header("Authorization")?.replace("Bearer ", "")
+  console.log("Admin auth check, password provided:", !!password)
+
   if (password !== c.env.ADMIN_PASSWORD) {
+    console.log("Admin auth failed")
     return c.json({ error: "Unauthorized" }, 401)
   }
+
+  console.log("Admin auth successful")
   await next()
 }
 
-// Get all published articles
+// Get all published articles - NO AUTH REQUIRED
 app.get("/api/articles", async (c) => {
   try {
+    console.log("Fetching articles - no auth required")
+
+    // Check if DB is available
+    if (!c.env.DB) {
+      console.error("Database not available")
+      return c.json({ error: "Database not configured" }, 500)
+    }
+
     // No cache headers - always serve fresh data
     c.header("Cache-Control", "no-cache, no-store, must-revalidate")
     c.header("Pragma", "no-cache")
     c.header("Expires", "0")
 
+    console.log("Querying database for published articles")
     const { results } = await c.env.DB.prepare(`
       SELECT id, slug, title, author, summary, tags, cover_image, created_at, updated_at
       FROM articles 
       WHERE is_published = 1 
       ORDER BY created_at DESC
     `).all()
+
+    console.log(`Found ${results.length} published articles`)
 
     const articles = results.map((article) => ({
       ...article,
@@ -53,22 +77,39 @@ app.get("/api/articles", async (c) => {
       featured: false,
     }))
 
+    console.log("Returning articles response")
     return c.json({ articles })
   } catch (error) {
     console.error("Error fetching articles:", error)
-    return c.json({ error: "Failed to fetch articles" }, 500)
+    return c.json(
+      {
+        error: "Failed to fetch articles",
+        details: error.message,
+      },
+      500,
+    )
   }
 })
 
-// Get single article by slug
+// Get single article by slug - NO AUTH REQUIRED
 app.get("/api/articles/:slug", async (c) => {
   try {
+    console.log("Fetching single article - no auth required")
+
+    // Check if DB is available
+    if (!c.env.DB) {
+      console.error("Database not available")
+      return c.json({ error: "Database not configured" }, 500)
+    }
+
     // No cache headers - always serve fresh data
     c.header("Cache-Control", "no-cache, no-store, must-revalidate")
     c.header("Pragma", "no-cache")
     c.header("Expires", "0")
 
     const slug = c.req.param("slug")
+    console.log(`Querying database for article with slug: ${slug}`)
+
     const { results } = await c.env.DB.prepare(`
       SELECT * FROM articles WHERE slug = ? AND is_published = 1
     `)
@@ -76,6 +117,7 @@ app.get("/api/articles/:slug", async (c) => {
       .all()
 
     if (results.length === 0) {
+      console.log(`Article not found for slug: ${slug}`)
       return c.json({ error: "Article not found" }, 404)
     }
 
@@ -96,16 +138,25 @@ app.get("/api/articles/:slug", async (c) => {
       featured: false,
     }
 
+    console.log(`Returning article: ${article.title}`)
     return c.json({ article: formattedArticle })
   } catch (error) {
     console.error("Error fetching article:", error)
-    return c.json({ error: "Failed to fetch article" }, 500)
+    return c.json(
+      {
+        error: "Failed to fetch article",
+        details: error.message,
+      },
+      500,
+    )
   }
 })
 
-// Admin: Get all articles (including drafts)
+// Admin: Get all articles (including drafts) - AUTH REQUIRED
 app.get("/api/admin/articles", adminAuth, async (c) => {
   try {
+    console.log("Fetching admin articles - auth required")
+
     // No cache for admin endpoints
     c.header("Cache-Control", "no-cache, no-store, must-revalidate")
 
@@ -126,7 +177,7 @@ app.get("/api/admin/articles", adminAuth, async (c) => {
   }
 })
 
-// Admin: Create new article
+// Admin: Create new article - AUTH REQUIRED
 app.post("/api/admin/articles", adminAuth, async (c) => {
   try {
     c.header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -165,7 +216,7 @@ app.post("/api/admin/articles", adminAuth, async (c) => {
   }
 })
 
-// Admin: Update article
+// Admin: Update article - AUTH REQUIRED
 app.put("/api/admin/articles/:id", adminAuth, async (c) => {
   try {
     c.header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -203,7 +254,7 @@ app.put("/api/admin/articles/:id", adminAuth, async (c) => {
   }
 })
 
-// Admin: Delete article
+// Admin: Delete article - AUTH REQUIRED
 app.delete("/api/admin/articles/:id", adminAuth, async (c) => {
   try {
     c.header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -223,10 +274,28 @@ app.delete("/api/admin/articles/:id", adminAuth, async (c) => {
   }
 })
 
-// Health check
+// Health check - should work without any auth
 app.get("/api/health", (c) => {
+  console.log("Health check called")
   c.header("Cache-Control", "no-cache, no-store, must-revalidate")
-  return c.json({ status: "OK", timestamp: new Date().toISOString() })
+  return c.json({
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    environment: c.env ? "production" : "development",
+  })
+})
+
+// Catch-all route for debugging
+app.all("*", (c) => {
+  console.log(`Unmatched route: ${c.req.method} ${c.req.url}`)
+  return c.json(
+    {
+      error: "Route not found",
+      method: c.req.method,
+      path: c.req.url,
+    },
+    404,
+  )
 })
 
 export default app

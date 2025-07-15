@@ -1,6 +1,7 @@
 name = "blog-worker"
 main = "src/index.js"
 compatibility_date = "2024-01-15"
+workers_dev = true
 
 [[d1_databases]]
 binding = "DB"
@@ -10,4 +11,8 @@ database_id = "de3a4a95-4ffe-47d4-821f-0a4288bee34c"
 [vars]
 ADMIN_PASSWORD = "123"
 
-workers_dev = true
+# Custom domain route
+[[routes]]
+pattern = "api.flexifeeds.me/*"
+zone_name = "flexifeeds.me"
+
