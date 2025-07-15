@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator"
 import ReactMarkdown from "react-markdown"
 import { Suspense } from "react"
 
+export const runtime = "edge" // Enable Edge Runtime for dynamic fetching
+
 interface ArticlePageProps {
   params: {
     slug: string
@@ -83,25 +85,23 @@ async function ArticleContent({ slug }: { slug: string }) {
 
           <div className="absolute inset-0 flex items-end">
             <div className="container mx-auto px-4 pb-12">
-              <div className="max-w-4xl">
-                <Button variant="ghost" asChild className="mb-6 text-white hover:bg-white/20">
-                  <Link href="/">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Home
-                  </Link>
-                </Button>
+              <Button variant="ghost" asChild className="mb-6 text-white hover:bg-white/20">
+                <Link href="/">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Home
+                </Link>
+              </Button>
 
-                <div className="flex items-center space-x-2 mb-4">
-                  <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30">{article.category}</Badge>
-                  {article.featured && (
-                    <Badge className="bg-gradient-to-r from-red-600 to-red-800 text-white">Featured</Badge>
-                  )}
-                </div>
-
-                <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">{article.title}</h1>
-
-                <p className="text-xl text-white/90 mb-6 leading-relaxed">{article.excerpt}</p>
+              <div className="flex items-center space-x-2 mb-4">
+                <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30">{article.category}</Badge>
+                {article.featured && (
+                  <Badge className="bg-gradient-to-r from-red-600 to-red-800 text-white">Featured</Badge>
+                )}
               </div>
+
+              <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">{article.title}</h1>
+
+              <p className="text-xl text-white/90 mb-6 leading-relaxed">{article.excerpt}</p>
             </div>
           </div>
         </div>
