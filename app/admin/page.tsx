@@ -53,7 +53,7 @@ interface AdminStats {
 }
 
 export default async function AdminPage() {
-  const host = (await headers()).get("host")
+  const host = headers().get("host")
 
   // Check if the request is coming from the admin subdomain
   // Replace 'admin.flexifeeds.me' with your actual admin subdomain
