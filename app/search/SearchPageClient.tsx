@@ -1,35 +1,17 @@
 "use client"
-
-import { Suspense } from "react"
-import { useSearchParams } from "next/navigation"
-import { useRouter } from "next/navigation"
 import { useState, useEffect, useCallback } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Card, CardContent } from "@/components/ui/card"
+import { useSearchParams, useRouter } from "next/navigation"
+import { Search, Filter, Grid, List, ArrowRight, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Select, 
-  SelectTrigger, 
-  SelectValue, 
-  SelectContent, 
-  SelectItem 
-} from "@/components/ui/select"
-import { Search, ArrowRight, Grid, List, X } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { fetchArticles, type Article } from "@/lib/api"
 import { ArticleCard } from "@/components/article-card"
+import Link from "next/link"
 
-export default function SearchPage() {
-  return (
-    <Suspense fallback={<div className="p-8 text-center">Loading search...</div>}>
-      <SearchPageClient />
-    </Suspense>
-  )
-}
-
-function SearchPageClient() {
+export default function SearchPageClient() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '')
@@ -155,10 +137,13 @@ function SearchPageClient() {
         {/* Minimal Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-foreground">Search Articles</h1>
-          <p className="text-muted-foreground">Find articles by keyword, category, or tag</p>
+          <p className="text-sm text-muted-foreground">
+            Find articles across all topics
+          </p>
         </div>
 
-        <Card className="mb-8">
+        {/* Search Form */}
+        <Card className="mb-6 border bg-background shadow-sm">
           <CardContent className="p-4">
             <form onSubmit={handleSearch} className="space-y-4">
               {/* Search Input */}
@@ -323,11 +308,10 @@ function SearchPageClient() {
                       <Link href={`/article/${article.slug}`} className="block border rounded-md overflow-hidden hover:shadow-md transition-shadow bg-card">
                         <div className="relative h-32 bg-muted">
                           {article.image && (
-                            <Image
+                            <img
                               src={article.image}
                               alt={article.title}
-                              fill
-                              className="object-cover"
+                              className="object-cover w-full h-full"
                             />
                           )}
                         </div>
@@ -381,4 +365,3 @@ function SearchPageClient() {
     </div>
   )
 }
-
