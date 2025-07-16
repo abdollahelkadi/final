@@ -52,7 +52,7 @@ interface AdminStats {
   totalCategories: number
 }
 
-async function AdminPage() {
+export default async function AdminPage() {
   const host = (await headers()).get("host")
 
   // Check if the request is coming from the admin subdomain
@@ -833,5 +833,3 @@ function CategoryForm({
     </form>
   )
 }
-
-export default AdminPage
