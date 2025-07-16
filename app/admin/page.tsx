@@ -75,11 +75,11 @@ function AdminSidebar({
   ]
 
   return (
-    <div className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 h-screen flex flex-col">
+    <div className="w-64 bg-background dark:bg-background border-r border-border h-screen flex flex-col">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">Content Management</p>
+      <div className="p-6 border-b border-border">
+        <h1 className="text-xl font-bold text-foreground">Admin Panel</h1>
+        <p className="text-sm text-muted-foreground">Content Management</p>
       </div>
 
       {/* Navigation */}
@@ -107,10 +107,10 @@ function AdminSidebar({
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+      <div className="p-4 border-t border-border">
         <button
           onClick={onLogout}
-          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
         >
           <LogOut className="h-5 w-5" />
           <span className="font-medium">Logout</span>
@@ -140,10 +140,10 @@ function DashboardTab({ articles, categories }: { articles: Article[]; categorie
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Articles</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalArticles}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Articles</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalArticles}</p>
               </div>
-              <FileText className="h-8 w-8 text-gray-400" />
+              <FileText className="h-8 w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -334,7 +334,10 @@ function ArticlesTab({
                   <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{article.excerpt}</p>
                   {article.tags && article.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {(Array.isArray(article.tags) ? article.tags : article.tags.split(",")).map((tag, index) => (
+                      {(Array.isArray(article.tags)
+                        ? article.tags
+                        : (article.tags as string).split(",")
+                      ).map((tag: string, index: number) => (
                         <Badge key={index} variant="outline" className="text-xs">
                           {tag.trim()}
                         </Badge>
@@ -834,9 +837,14 @@ export default function AdminPage() {
     setLoading(true)
 
     try {
-      await fetchAdminArticles(password)
+      // Test authentication by fetching admin articles
+      const articlesData = await fetchAdminArticles(password)
+      const categoriesData = await fetchAdminCategories(password)
+      
+      // If we get here, authentication was successful
       setIsAuthenticated(true)
-      loadData()
+      setArticles(articlesData)
+      setCategories(categoriesData)
       toast.success("Login successful")
     } catch (error) {
       toast.error("Invalid password")
@@ -847,7 +855,7 @@ export default function AdminPage() {
   }
 
   const loadData = useCallback(async () => {
-    if (!isAuthenticated) return
+    if (!password) return
 
     setLoading(true)
     try {
@@ -860,10 +868,13 @@ export default function AdminPage() {
     } catch (error) {
       toast.error("Failed to load data")
       console.error("Error loading data:", error)
+      // If data loading fails, it might be due to invalid auth
+      setIsAuthenticated(false)
+      setPassword("")
     } finally {
       setLoading(false)
     }
-  }, [isAuthenticated, password])
+  }, [password])
 
   const handleLogout = () => {
     setIsAuthenticated(false)
@@ -876,11 +887,11 @@ export default function AdminPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <Card className="w-full max-w-md border-gray-200 dark:border-gray-800">
+      <div className="min-h-screen flex items-center justify-center bg-muted dark:bg-background">
+        <Card className="w-full max-w-md border-border">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Admin Login</CardTitle>
-            <p className="text-gray-600 dark:text-gray-400">Enter your password to access the admin panel</p>
+            <CardTitle className="text-2xl font-bold text-foreground">Admin Login</CardTitle>
+            <p className="text-muted-foreground">Enter your password to access the admin panel</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -895,7 +906,7 @@ export default function AdminPage() {
                   disabled={loading}
                 />
               </div>
-              <Button type="submit" className="w-full bg-gray-900 hover:bg-gray-800 text-white" disabled={loading}>
+              <Button type="submit" className="w-full bg-foreground hover:bg-muted-foreground text-background" disabled={loading}>
                 {loading ? "Logging in..." : "Login"}
               </Button>
             </form>
@@ -906,7 +917,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+    <div className="min-h-screen bg-muted dark:bg-background flex">
       <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
 
       <div className="flex-1 overflow-auto">

@@ -25,11 +25,11 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center group">
-            <Logo size="md" className="transition-transform duration-300 group-hover:scale-105" />
+            <Logo size="lg" className="transition-transform duration-300 group-hover:scale-105" />
           </Link>
 
-          {/* Desktop Navigation - moved further to the left */}
-          <nav className="hidden lg:flex items-center space-x-8 -ml-40">
+          {/* Desktop Navigation - adjusted margin */}
+          <nav className="hidden lg:flex items-center space-x-8 -ml-32">
             {navItems.map((item) => (
               <Link
                 key={item.href}

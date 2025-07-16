@@ -42,6 +42,23 @@ const nextConfig = {
     ],
   },
 
+  // Rewrites for subdomain handling
+  async rewrites() {
+    return [
+      // Handle admin subdomain
+      {
+        source: '/',
+        destination: '/admin',
+        has: [
+          {
+            type: 'host',
+            value: 'admin.flexifeeds.me'
+          }
+        ]
+      }
+    ]
+  },
+
   // Headers for security and performance
   async headers() {
     return [

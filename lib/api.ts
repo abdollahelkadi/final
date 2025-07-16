@@ -336,6 +336,10 @@ export async function fetchAdminArticles(password: string): Promise<Article[]> {
     return transformedArticles
   } catch (error) {
     console.error("Error fetching admin articles:", error)
+    // Re-throw with more specific error message for authentication failures
+    if (error instanceof Error && (error.message.includes("401") || error.message.includes("403"))) {
+      throw new Error("Authentication failed. Please check your password.")
+    }
     throw error
   }
 }
@@ -453,6 +457,10 @@ export async function fetchAdminCategories(password: string): Promise<Category[]
     }))
   } catch (error) {
     console.error("Error fetching admin categories:", error)
+    // Re-throw with more specific error message for authentication failures
+    if (error instanceof Error && (error.message.includes("401") || error.message.includes("403"))) {
+      throw new Error("Authentication failed. Please check your password.")
+    }
     throw error
   }
 }
