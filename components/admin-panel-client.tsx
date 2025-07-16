@@ -1,11 +1,17 @@
 "use client"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import type React from "react"
-import { headers } from "next/headers"
-import { notFound } from "next/navigation"
-import AdminPanelClient from "@/components/admin-panel-client"
 
-import { createArticle, updateArticle, deleteArticle, createCategory, updateCategory, deleteCategory } from "@/lib/api"
+import {
+  fetchAdminArticles,
+  fetchAdminCategories,
+  createArticle,
+  updateArticle,
+  deleteArticle,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "@/lib/api"
 import type { Article, Category } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -42,27 +48,11 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-// Required for Cloudflare Pages
-export const runtime = "edge"
-
 interface AdminStats {
   totalArticles: number
   publishedArticles: number
   draftArticles: number
   totalCategories: number
-}
-
-async function AdminPage() {
-  const host = (await headers()).get("host")
-
-  // Check if the request is coming from the admin subdomain
-  // Replace 'admin.flexifeeds.me' with your actual admin subdomain
-  if (host !== "admin.flexifeeds.me") {
-    notFound() // Return a 404 if not from the admin subdomain
-  }
-
-  // If from admin.flexifeeds.me, render the client-side admin panel
-  return <AdminPanelClient />
 }
 
 function AdminSidebar({
@@ -341,17 +331,13 @@ function ArticlesTab({
                   <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{article.excerpt}</p>
                   {article.tags && article.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {Array.isArray(article.tags)
-                        ? article.tags.map((tag: string, index: number) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {tag.trim()}
-                            </Badge>
-                          ))
-                        : (article.tags as string).split(",").map((tag: string, index: number) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {tag.trim()}
-                            </Badge>
-                          ))}
+                      {(Array.isArray(article.tags) ? article.tags : (article.tags as string).split(",")).map(
+                        (tag: string, index: number) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {tag.trim()}
+                          </Badge>
+                        ),
+                      )}
                     </div>
                   )}
                 </div>
@@ -834,4 +820,111 @@ function CategoryForm({
   )
 }
 
-export default AdminPage
+export default function AdminPanelClient() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [password, setPassword] = useState("")
+  const [articles, setArticles] = useState<Article[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState("dashboard")
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      // The password "123" is used for demonstration as per your request.
+      // In a real application, you would use a more secure authentication method.
+      if (password === "123") {
+        setIsAuthenticated(true)
+        loadData()
+        toast.success("Login successful")
+      } else {
+        toast.error("Invalid password")
+      }
+    } catch (error) {
+      toast.error("Login failed")
+      console.error("Login error:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadData = useCallback(async () => {
+    if (!isAuthenticated) return
+
+    setLoading(true)
+    try {
+      const [articlesData, categoriesData] = await Promise.all([
+        fetchAdminArticles(password),
+        fetchAdminCategories(password),
+      ])
+      setArticles(articlesData)
+      setCategories(categoriesData)
+    } catch (error) {
+      toast.error("Failed to load data")
+      console.error("Error loading data:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [isAuthenticated, password])
+
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+    setPassword("")
+    setArticles([])
+    setCategories([])
+    setActiveTab("dashboard")
+    toast.success("Logged out successfully")
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted dark:bg-background">
+        <Card className="w-full max-w-md border-border">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-foreground">Admin Login</CardTitle>
+            <p className="text-muted-foreground">Enter your password to access the admin panel</p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-foreground hover:bg-muted-foreground text-background"
+                disabled={loading}
+              >
+                {loading ? "Logging in..." : "Login"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-muted dark:bg-background flex">
+      <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
+
+      <div className="flex-1 overflow-auto">
+        <div className="p-8">
+          {activeTab === "dashboard" && <DashboardTab articles={articles} categories={categories} />}
+          {activeTab === "articles" && <ArticlesTab articles={articles} categories={categories} onRefresh={loadData} />}
+          {activeTab === "categories" && <CategoriesTab categories={categories} onRefresh={loadData} />}
+          {activeTab === "analytics" && <AnalyticsTab articles={articles} categories={categories} />}
+        </div>
+      </div>
+    </div>
+  )
+}
