@@ -106,6 +106,26 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
 
 // Transform article data from API to frontend format
 function transformArticle(apiArticle: any): Article {
+  // Parse SEO data safely
+  let seoData: SEOData | undefined;
+  if (apiArticle.seo) {
+    try {
+      // Check if it's already an object
+      if (typeof apiArticle.seo === 'object') {
+        seoData = apiArticle.seo;
+      } else {
+        // Try to parse as JSON
+        seoData = JSON.parse(apiArticle.seo);
+      }
+    } catch (error) {
+      // If parsing fails, use it as keywords instead
+      console.log(`SEO data for "${apiArticle.title}" is not valid JSON, using as keywords instead`);
+      seoData = {
+        keywords: apiArticle.seo
+      };
+    }
+  }
+
   return {
     id: apiArticle.id?.toString() || "",
     slug: apiArticle.slug || "",
@@ -150,7 +170,7 @@ function transformArticle(apiArticle: any): Article {
         : typeof apiArticle.tags === "string" && apiArticle.tags
           ? apiArticle.tags.split(",")[0].trim()
           : "General"),
-    seo: apiArticle.seo ? JSON.parse(apiArticle.seo) : undefined,
+    seo: seoData,
   }
 }
 
