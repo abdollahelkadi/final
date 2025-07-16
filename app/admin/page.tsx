@@ -1,11 +1,17 @@
 "use client"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import type React from "react"
-import { headers } from "next/headers"
-import { notFound } from "next/navigation"
-import AdminPanelClient from "@/components/admin-panel-client"
 
-import { createArticle, updateArticle, deleteArticle, createCategory, updateCategory, deleteCategory } from "@/lib/api"
+import {
+  fetchAdminArticles,
+  fetchAdminCategories,
+  createArticle,
+  updateArticle,
+  deleteArticle,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "@/lib/api"
 import type { Article, Category } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -52,19 +58,6 @@ interface AdminStats {
   totalCategories: number
 }
 
-export default async function AdminPage() {
-  const host = headers().get("host")
-
-  // Check if the request is coming from the admin subdomain
-  // Replace 'admin.flexifeeds.me' with your actual admin subdomain
-  if (host !== "admin.flexifeeds.me") {
-    notFound() // Return a 404 if not from the admin subdomain
-  }
-
-  // If from admin.flexifeeds.me, render the client-side admin panel
-  return <AdminPanelClient />
-}
-
 function AdminSidebar({
   activeTab,
   setActiveTab,
@@ -82,11 +75,11 @@ function AdminSidebar({
   ]
 
   return (
-    <div className="w-64 bg-background dark:bg-background border-r border-border h-screen flex flex-col">
+    <div className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 h-screen flex flex-col">
       {/* Header */}
-      <div className="p-6 border-b border-border">
-        <h1 className="text-xl font-bold text-foreground">Admin Panel</h1>
-        <p className="text-sm text-muted-foreground">Content Management</p>
+      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Content Management</p>
       </div>
 
       {/* Navigation */}
@@ -114,10 +107,10 @@ function AdminSidebar({
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
         <button
           onClick={onLogout}
-          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
+          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
           <LogOut className="h-5 w-5" />
           <span className="font-medium">Logout</span>
@@ -147,10 +140,10 @@ function DashboardTab({ articles, categories }: { articles: Article[]; categorie
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Articles</p>
-                <p className="text-2xl font-bold text-foreground">{stats.totalArticles}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Articles</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalArticles}</p>
               </div>
-              <FileText className="h-8 w-8 text-muted-foreground" />
+              <FileText className="h-8 w-8 text-gray-400" />
             </div>
           </CardContent>
         </Card>
@@ -341,17 +334,11 @@ function ArticlesTab({
                   <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{article.excerpt}</p>
                   {article.tags && article.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {Array.isArray(article.tags)
-                        ? article.tags.map((tag: string, index: number) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {tag.trim()}
-                            </Badge>
-                          ))
-                        : (article.tags as string).split(",").map((tag: string, index: number) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {tag.trim()}
-                            </Badge>
-                          ))}
+                      {(Array.isArray(article.tags) ? article.tags : article.tags.split(",")).map((tag, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {tag.trim()}
+                        </Badge>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -831,5 +818,105 @@ function CategoryForm({
         </Button>
       </div>
     </form>
+  )
+}
+
+export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [password, setPassword] = useState("")
+  const [articles, setArticles] = useState<Article[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState("dashboard")
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      await fetchAdminArticles(password)
+      setIsAuthenticated(true)
+      loadData()
+      toast.success("Login successful")
+    } catch (error) {
+      toast.error("Invalid password")
+      console.error("Login error:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadData = useCallback(async () => {
+    if (!isAuthenticated) return
+
+    setLoading(true)
+    try {
+      const [articlesData, categoriesData] = await Promise.all([
+        fetchAdminArticles(password),
+        fetchAdminCategories(password),
+      ])
+      setArticles(articlesData)
+      setCategories(categoriesData)
+    } catch (error) {
+      toast.error("Failed to load data")
+      console.error("Error loading data:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [isAuthenticated, password])
+
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+    setPassword("")
+    setArticles([])
+    setCategories([])
+    setActiveTab("dashboard")
+    toast.success("Logged out successfully")
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Card className="w-full max-w-md border-gray-200 dark:border-gray-800">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Admin Login</CardTitle>
+            <p className="text-gray-600 dark:text-gray-400">Enter your password to access the admin panel</p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <Button type="submit" className="w-full bg-gray-900 hover:bg-gray-800 text-white" disabled={loading}>
+                {loading ? "Logging in..." : "Login"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
+
+      <div className="flex-1 overflow-auto">
+        <div className="p-8">
+          {activeTab === "dashboard" && <DashboardTab articles={articles} categories={categories} />}
+          {activeTab === "articles" && <ArticlesTab articles={articles} categories={categories} onRefresh={loadData} />}
+          {activeTab === "categories" && <CategoriesTab categories={categories} onRefresh={loadData} />}
+          {activeTab === "analytics" && <AnalyticsTab articles={articles} categories={categories} />}
+        </div>
+      </div>
+    </div>
   )
 }
