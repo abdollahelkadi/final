@@ -1,5 +1,5 @@
 // API configuration - Update this to match your actual worker URL
-const API_BASE_URL = "https://api.flexifeeds.me"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.flexifeeds.me"
 
 export interface SEOData {
   title?: string
@@ -35,6 +35,15 @@ export interface Article {
   readTime: string
   category: string
   seo?: SEOData
+}
+
+export interface Category {
+  id: string
+  name: string
+  description: string
+  cover?: string
+  created_at?: string
+  updated_at?: string
 }
 
 // Enhanced fetch with better error handling and retries (no caching)
@@ -110,7 +119,7 @@ function transformArticle(apiArticle: any): Article {
       : typeof apiArticle.tags === "string"
         ? apiArticle.tags
             .split(",")
-            .map((t) => t.trim())
+            .map((t: string) => t.trim())
             .filter(Boolean)
         : [],
     cover_image: apiArticle.cover_image,
@@ -234,6 +243,70 @@ export async function fetchArticleSlugs(): Promise<string[]> {
   }
 }
 
+// Fetch all categories
+export async function fetchCategories(): Promise<Category[]> {
+  try {
+    console.log("Fetching categories from:", `${API_BASE_URL}/api/categories`)
+
+    const response = await fetchWithRetry(`${API_BASE_URL}/api/categories`, {
+      method: "GET",
+    })
+
+    const data = await response.json()
+    console.log("Categories API response:", data)
+
+    if (!data.categories || !Array.isArray(data.categories)) {
+      console.error("Invalid categories response format:", data)
+      return []
+    }
+
+    return data.categories.map((category: any) => ({
+      ...category,
+      id: category.id?.toString() || "",
+    }))
+  } catch (error) {
+    console.error("Error fetching categories:", error)
+    throw error
+  }
+}
+
+// Fetch single category with articles
+export async function fetchCategoryWithArticles(
+  name: string,
+): Promise<{ category: Category; articles: Article[] } | null> {
+  try {
+    console.log("Fetching category with articles:", name)
+
+    const response = await fetchWithRetry(`${API_BASE_URL}/api/categories/${encodeURIComponent(name)}`, {
+      method: "GET",
+    })
+
+    const data = await response.json()
+    console.log("Category with articles API response:", data)
+
+    if (!data.category) {
+      console.log("No category found for name:", name)
+      return null
+    }
+
+    const transformedArticles = data.articles ? data.articles.map(transformArticle) : []
+
+    return {
+      category: {
+        ...data.category,
+        id: data.category.id?.toString() || "",
+      },
+      articles: transformedArticles,
+    }
+  } catch (error) {
+    console.error("Error fetching category:", error)
+    if (error instanceof Error && error.message.includes("404")) {
+      return null
+    }
+    throw error
+  }
+}
+
 // Admin API functions
 export async function fetchAdminArticles(password: string): Promise<Article[]> {
   try {
@@ -350,6 +423,95 @@ export async function deleteArticle(password: string, id: string): Promise<void>
     console.log("Delete article response:", result)
   } catch (error) {
     console.error("Error deleting article:", error)
+    throw error
+  }
+}
+
+// Admin category functions
+export async function fetchAdminCategories(password: string): Promise<Category[]> {
+  try {
+    console.log("Fetching admin categories")
+
+    const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/categories`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${password}`,
+      },
+    })
+
+    const data = await response.json()
+    console.log("Admin categories API response:", data)
+
+    if (!data.categories || !Array.isArray(data.categories)) {
+      console.error("Invalid admin categories response format:", data)
+      return []
+    }
+
+    return data.categories.map((category: any) => ({
+      ...category,
+      id: category.id?.toString() || "",
+    }))
+  } catch (error) {
+    console.error("Error fetching admin categories:", error)
+    throw error
+  }
+}
+
+export async function createCategory(password: string, categoryData: any): Promise<void> {
+  try {
+    console.log("Creating category:", categoryData)
+
+    const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/categories`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${password}`,
+      },
+      body: JSON.stringify(categoryData),
+    })
+
+    const result = await response.json()
+    console.log("Create category response:", result)
+  } catch (error) {
+    console.error("Error creating category:", error)
+    throw error
+  }
+}
+
+export async function updateCategory(password: string, id: string, categoryData: any): Promise<void> {
+  try {
+    console.log("Updating category:", id, categoryData)
+
+    const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/categories/${id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${password}`,
+      },
+      body: JSON.stringify(categoryData),
+    })
+
+    const result = await response.json()
+    console.log("Update category response:", result)
+  } catch (error) {
+    console.error("Error updating category:", error)
+    throw error
+  }
+}
+
+export async function deleteCategory(password: string, id: string): Promise<void> {
+  try {
+    console.log("Deleting category:", id)
+
+    const response = await fetchWithRetry(`${API_BASE_URL}/api/admin/categories/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${password}`,
+      },
+    })
+
+    const result = await response.json()
+    console.log("Delete category response:", result)
+  } catch (error) {
+    console.error("Error deleting category:", error)
     throw error
   }
 }

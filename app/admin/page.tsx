@@ -1,17 +1,26 @@
 "use client"
-
+import { useState, useCallback } from "react"
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import {
+  fetchAdminArticles,
+  fetchAdminCategories,
+  createArticle,
+  updateArticle,
+  deleteArticle,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "@/lib/api"
+import type { Article, Category } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,41 +33,199 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import {
+  LayoutDashboard,
+  FileText,
+  Folder,
+  BarChart3,
   Plus,
   Edit,
   Trash2,
   Eye,
   EyeOff,
+  TrendingUp,
+  BookOpen,
   LogOut,
-  Search,
-  Filter,
-  MoreHorizontal,
-  ImageIcon,
-  Settings,
 } from "lucide-react"
-import { fetchAdminArticles, createArticle, updateArticle, deleteArticle, type Article, type SEOData } from "@/lib/api"
 import { toast } from "sonner"
-import { Logo } from "@/components/ui/logo"
-import Image from "next/image"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { SEOForm } from "@/components/seo/seo-form"
-import { generateAutoSEO } from "@/lib/seo"
 
 // Required for Cloudflare Pages
 export const runtime = "edge"
 
-export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [password, setPassword] = useState("")
-  const [articles, setArticles] = useState<Article[]>([])
-  const [filteredArticles, setFilteredArticles] = useState<Article[]>([])
-  const [loading, setLoading] = useState(false)
-  const [editingArticle, setEditingArticle] = useState<Article | null>(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all")
-  const [activeTab, setActiveTab] = useState("content")
+interface AdminStats {
+  totalArticles: number
+  publishedArticles: number
+  draftArticles: number
+  totalCategories: number
+}
 
+function AdminSidebar({
+  activeTab,
+  setActiveTab,
+  onLogout,
+}: {
+  activeTab: string
+  setActiveTab: (tab: string) => void
+  onLogout: () => void
+}) {
+  const menuItems = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "articles", label: "Articles", icon: FileText },
+    { id: "categories", label: "Categories", icon: Folder },
+    { id: "analytics", label: "Analytics", icon: BarChart3 },
+  ]
+
+  return (
+    <div className="w-64 bg-background dark:bg-background border-r border-border h-screen flex flex-col">
+      {/* Header */}
+      <div className="p-6 border-b border-border">
+        <h1 className="text-xl font-bold text-foreground">Admin Panel</h1>
+        <p className="text-sm text-muted-foreground">Content Management</p>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 p-4">
+        <ul className="space-y-2">
+          {menuItems.map((item) => {
+            const Icon = item.icon
+            return (
+              <li key={item.id}>
+                <button
+                  onClick={() => setActiveTab(item.id)}
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    activeTab === item.id
+                      ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-border">
+        <button
+          onClick={onLogout}
+          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
+        >
+          <LogOut className="h-5 w-5" />
+          <span className="font-medium">Logout</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function DashboardTab({ articles, categories }: { articles: Article[]; categories: Category[] }) {
+  const stats: AdminStats = {
+    totalArticles: articles.length,
+    publishedArticles: articles.filter((a) => a.published).length,
+    draftArticles: articles.filter((a) => !a.published).length,
+    totalCategories: categories.length,
+  }
+
+  const recentArticles = articles
+    .sort((a, b) => new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime())
+    .slice(0, 5)
+
+  return (
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="border-gray-200 dark:border-gray-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Articles</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalArticles}</p>
+              </div>
+              <FileText className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 dark:border-gray-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Published</p>
+                <p className="text-2xl font-bold text-green-600">{stats.publishedArticles}</p>
+              </div>
+              <Eye className="h-8 w-8 text-green-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 dark:border-gray-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Drafts</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.draftArticles}</p>
+              </div>
+              <EyeOff className="h-8 w-8 text-orange-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 dark:border-gray-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Categories</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.totalCategories}</p>
+              </div>
+              <Folder className="h-8 w-8 text-blue-400" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Articles */}
+      <Card className="border-gray-200 dark:border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-gray-900 dark:text-white">Recent Articles</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {recentArticles.map((article) => (
+              <div
+                key={article.id}
+                className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+              >
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900 dark:text-white">{article.title}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    By {article.author} • {article.date}
+                  </p>
+                </div>
+                <Badge variant={article.published ? "default" : "secondary"}>
+                  {article.published ? "Published" : "Draft"}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function ArticlesTab({
+  articles,
+  categories,
+  onRefresh,
+}: {
+  articles: Article[]
+  categories: Category[]
+  onRefresh: () => void
+}) {
+  const [editingArticle, setEditingArticle] = useState<Article | null>(null)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
@@ -68,624 +235,689 @@ export default function AdminPage() {
     tags: "",
     cover_image: "",
     is_published: false,
-    seo: {} as SEOData,
   })
 
-  // Filter articles based on search and status
-  useEffect(() => {
-    let filtered = articles
-
-    // Apply search filter
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (article) =>
-          article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          article.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          article.category.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
-    }
-
-    // Apply status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((article) =>
-        statusFilter === "published"
-          ? article.is_published || article.published
-          : !(article.is_published || article.published),
-      )
-    }
-
-    setFilteredArticles(filtered)
-  }, [articles, searchQuery, statusFilter])
-
-  const handleLogin = async () => {
-    if (password === "123") {
-      setIsAuthenticated(true)
-      await loadArticles()
-    } else {
-      toast.error("Invalid password")
-    }
-  }
-
-  const loadArticles = async () => {
+  const handleSubmit = async (password: string) => {
     try {
-      setLoading(true)
-      const data = await fetchAdminArticles(password)
-      setArticles(data)
-    } catch (error) {
-      toast.error("Failed to load articles")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      setLoading(true)
-
-      const articleData = {
-        ...formData,
-        tags: formData.tags
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter(Boolean),
-      }
-
       if (editingArticle) {
-        await updateArticle(password, editingArticle.id, articleData)
+        await updateArticle(password, editingArticle.id, formData)
         toast.success("Article updated successfully")
       } else {
-        await createArticle(password, articleData)
+        await createArticle(password, formData)
         toast.success("Article created successfully")
       }
 
-      await loadArticles()
-      setIsDialogOpen(false)
-      resetForm()
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save article")
-    } finally {
-      setLoading(false)
+      setEditingArticle(null)
+      setIsCreateDialogOpen(false)
+      setFormData({
+        title: "",
+        slug: "",
+        author: "",
+        content: "",
+        summary: "",
+        tags: "",
+        cover_image: "",
+        is_published: false,
+      })
+      onRefresh()
+    } catch (error) {
+      toast.error("Failed to save article")
+      console.error("Error saving article:", error)
     }
   }
 
-  const handleEdit = (article: Article) => {
+  const handleDelete = async (password: string, articleId: string) => {
+    try {
+      await deleteArticle(password, articleId)
+      toast.success("Article deleted successfully")
+      onRefresh()
+    } catch (error) {
+      toast.error("Failed to delete article")
+      console.error("Error deleting article:", error)
+    }
+  }
+
+  const openEditDialog = (article: Article) => {
     setEditingArticle(article)
     setFormData({
       title: article.title,
       slug: article.slug,
       author: article.author,
       content: article.content,
-      summary: article.summary || article.excerpt,
-      tags: Array.isArray(article.tags) ? article.tags.join(", ") : article.tags?.toString() || "",
-      cover_image: article.cover_image || article.image || "",
-      is_published: article.is_published === 1 || article.published,
-      seo: article.seo || {},
+      summary: article.summary || "",
+      tags: Array.isArray(article.tags) ? article.tags.join(", ") : article.tags,
+      cover_image: article.cover_image || "",
+      is_published: article.published,
     })
-    setIsDialogOpen(true)
   }
 
-  const handleDelete = async (id: string) => {
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Articles</h2>
+          <p className="text-gray-600 dark:text-gray-400">Manage your blog articles</p>
+        </div>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-gray-900 hover:bg-gray-800 text-white">
+              <Plus className="h-4 w-4 mr-2" />
+              New Article
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Article</DialogTitle>
+            </DialogHeader>
+            <ArticleForm formData={formData} setFormData={setFormData} onSubmit={handleSubmit} isEditing={false} />
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Articles List */}
+      <div className="grid gap-4">
+        {articles.map((article) => (
+          <Card key={article.id} className="border-gray-200 dark:border-gray-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{article.title}</h3>
+                    <Badge variant={article.published ? "default" : "secondary"}>
+                      {article.published ? "Published" : "Draft"}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    By {article.author} • {article.date} • {article.readTime}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{article.excerpt}</p>
+                  {article.tags && article.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {(Array.isArray(article.tags)
+                        ? article.tags
+                        : (article.tags as string).split(",")
+                      ).map((tag: string, index: number) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {tag.trim()}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(article)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Edit Article</DialogTitle>
+                      </DialogHeader>
+                      <ArticleForm
+                        formData={formData}
+                        setFormData={setFormData}
+                        onSubmit={handleSubmit}
+                        isEditing={true}
+                      />
+                    </DialogContent>
+                  </Dialog>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 bg-transparent">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Article</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{article.title}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
+                            const password = prompt("Enter admin password:")
+                            if (password) handleDelete(password, article.id)
+                          }}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CategoriesTab({
+  categories,
+  onRefresh,
+}: {
+  categories: Category[]
+  onRefresh: () => void
+}) {
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    cover: "",
+  })
+
+  const handleSubmit = async (password: string) => {
     try {
-      setLoading(true)
-      await deleteArticle(password, id)
-      toast.success("Article deleted successfully")
-      await loadArticles()
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete article")
+      if (editingCategory) {
+        await updateCategory(password, editingCategory.id, formData)
+        toast.success("Category updated successfully")
+      } else {
+        await createCategory(password, formData)
+        toast.success("Category created successfully")
+      }
+
+      setEditingCategory(null)
+      setIsCreateDialogOpen(false)
+      setFormData({
+        name: "",
+        description: "",
+        cover: "",
+      })
+      onRefresh()
+    } catch (error) {
+      toast.error("Failed to save category")
+      console.error("Error saving category:", error)
+    }
+  }
+
+  const handleDelete = async (password: string, categoryId: string) => {
+    try {
+      await deleteCategory(password, categoryId)
+      toast.success("Category deleted successfully")
+      onRefresh()
+    } catch (error) {
+      toast.error("Failed to delete category")
+      console.error("Error deleting category:", error)
+    }
+  }
+
+  const openEditDialog = (category: Category) => {
+    setEditingCategory(category)
+    setFormData({
+      name: category.name,
+      description: category.description,
+      cover: category.cover || "",
+    })
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Categories</h2>
+          <p className="text-gray-600 dark:text-gray-400">Organize your content</p>
+        </div>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-gray-900 hover:bg-gray-800 text-white">
+              <Plus className="h-4 w-4 mr-2" />
+              New Category
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Category</DialogTitle>
+            </DialogHeader>
+            <CategoryForm formData={formData} setFormData={setFormData} onSubmit={handleSubmit} isEditing={false} />
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Categories Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {categories.map((category) => (
+          <Card key={category.id} className="border-gray-200 dark:border-gray-800">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <Folder className="h-5 w-5 text-gray-400" />
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{category.name}</h3>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(category)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Edit Category</DialogTitle>
+                      </DialogHeader>
+                      <CategoryForm
+                        formData={formData}
+                        setFormData={setFormData}
+                        onSubmit={handleSubmit}
+                        isEditing={true}
+                      />
+                    </DialogContent>
+                  </Dialog>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 bg-transparent">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Category</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{category.name}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
+                            const password = prompt("Enter admin password:")
+                            if (password) handleDelete(password, category.id)
+                          }}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{category.description}</p>
+
+              {category.created_at && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Created {new Date(category.created_at).toLocaleDateString()}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function AnalyticsTab({ articles, categories }: { articles: Article[]; categories: Category[] }) {
+  const publishedArticles = articles.filter((a) => a.published)
+  const draftArticles = articles.filter((a) => !a.published)
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h2>
+        <p className="text-gray-600 dark:text-gray-400">Content performance overview</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className="border-gray-200 dark:border-gray-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Content Health</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {articles.length > 0 ? Math.round((publishedArticles.length / articles.length) * 100) : 0}%
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Published vs Draft</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-green-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 dark:border-gray-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Articles per Category</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {categories.length > 0 ? Math.round(publishedArticles.length / categories.length) : 0}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Content distribution</p>
+              </div>
+              <BookOpen className="h-8 w-8 text-blue-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 dark:border-gray-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Content Categories</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{categories.length}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Total categories</p>
+              </div>
+              <Folder className="h-8 w-8 text-purple-400" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity */}
+      <Card className="border-gray-200 dark:border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-gray-900 dark:text-white">Content Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <FileText className="h-5 w-5 text-gray-400" />
+                <span className="font-medium text-gray-900 dark:text-white">Total Articles</span>
+              </div>
+              <span className="text-2xl font-bold text-gray-900 dark:text-white">{articles.length}</span>
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <Eye className="h-5 w-5 text-green-600" />
+                <span className="font-medium text-gray-900 dark:text-white">Published Articles</span>
+              </div>
+              <span className="text-2xl font-bold text-green-600">{publishedArticles.length}</span>
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <EyeOff className="h-5 w-5 text-orange-600" />
+                <span className="font-medium text-gray-900 dark:text-white">Draft Articles</span>
+              </div>
+              <span className="text-2xl font-bold text-orange-600">{draftArticles.length}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function ArticleForm({
+  formData,
+  setFormData,
+  onSubmit,
+  isEditing,
+}: {
+  formData: any
+  setFormData: (data: any) => void
+  onSubmit: (password: string) => void
+  isEditing: boolean
+}) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const password = prompt("Enter admin password:")
+    if (password) {
+      onSubmit(password)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="title">Title</Label>
+          <Input
+            id="title"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="slug">Slug</Label>
+          <Input
+            id="slug"
+            value={formData.slug}
+            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+            required
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="author">Author</Label>
+          <Input
+            id="author"
+            value={formData.author}
+            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="cover_image">Cover Image URL</Label>
+          <Input
+            id="cover_image"
+            value={formData.cover_image}
+            onChange={(e) => setFormData({ ...formData, cover_image: e.target.value })}
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="summary">Summary</Label>
+        <Textarea
+          id="summary"
+          value={formData.summary}
+          onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+          rows={3}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="content">Content</Label>
+        <Textarea
+          id="content"
+          value={formData.content}
+          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+          rows={10}
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="tags">Tags (comma-separated)</Label>
+        <Input
+          id="tags"
+          value={formData.tags}
+          onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+          placeholder="technology, web development, react"
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="is_published"
+          checked={formData.is_published}
+          onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
+        />
+        <Label htmlFor="is_published">Published</Label>
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="submit" className="bg-gray-900 hover:bg-gray-800 text-white">
+          {isEditing ? "Update Article" : "Create Article"}
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+function CategoryForm({
+  formData,
+  setFormData,
+  onSubmit,
+  isEditing,
+}: {
+  formData: any
+  setFormData: (data: any) => void
+  onSubmit: (password: string) => void
+  isEditing: boolean
+}) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const password = prompt("Enter admin password:")
+    if (password) {
+      onSubmit(password)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="name">Name</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          rows={3}
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="cover">Cover Image URL</Label>
+        <Input
+          id="cover"
+          value={formData.cover}
+          onChange={(e) => setFormData({ ...formData, cover: e.target.value })}
+        />
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="submit" className="bg-gray-900 hover:bg-gray-800 text-white">
+          {isEditing ? "Update Category" : "Create Category"}
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [password, setPassword] = useState("")
+  const [articles, setArticles] = useState<Article[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState("dashboard")
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      await fetchAdminArticles(password)
+      setIsAuthenticated(true)
+      loadData()
+      toast.success("Login successful")
+    } catch (error) {
+      toast.error("Invalid password")
+      console.error("Login error:", error)
     } finally {
       setLoading(false)
     }
   }
 
-  const resetForm = () => {
-    setFormData({
-      title: "",
-      slug: "",
-      author: "",
-      content: "",
-      summary: "",
-      tags: "",
-      cover_image: "",
-      is_published: false,
-      seo: {},
-    })
-    setEditingArticle(null)
-    setActiveTab("content")
-  }
+  const loadData = useCallback(async () => {
+    if (!isAuthenticated) return
 
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "")
-  }
-
-  const handleAutoGenerateSEO = () => {
-    if (formData.title && formData.summary) {
-      const autoSEO = generateAutoSEO({
-        title: formData.title,
-        summary: formData.summary,
-        tags: formData.tags,
-        cover_image: formData.cover_image,
-        slug: formData.slug,
-      })
-      setFormData((prev) => ({ ...prev, seo: autoSEO }))
-      toast.success("SEO auto-generated successfully")
-    } else {
-      toast.error("Please fill in title and summary first")
+    setLoading(true)
+    try {
+      const [articlesData, categoriesData] = await Promise.all([
+        fetchAdminArticles(password),
+        fetchAdminCategories(password),
+      ])
+      setArticles(articlesData)
+      setCategories(categoriesData)
+    } catch (error) {
+      toast.error("Failed to load data")
+      console.error("Error loading data:", error)
+    } finally {
+      setLoading(false)
     }
-  }
+  }, [isAuthenticated, password])
 
-  const getStats = () => {
-    const total = articles.length
-    const published = articles.filter((a) => a.is_published || a.published).length
-    const drafts = total - published
-    return { total, published, drafts }
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+    setPassword("")
+    setArticles([])
+    setCategories([])
+    setActiveTab("dashboard")
+    toast.success("Logged out successfully")
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
-        <Card className="w-full max-w-md shadow-2xl border-0">
-          <CardHeader className="text-center pb-8">
-            <div className="mx-auto mb-6">
-              <Logo size="lg" />
-            </div>
-            <CardTitle className="text-2xl font-bold">Admin Access</CardTitle>
-            <p className="text-muted-foreground">Enter password to access admin dashboard</p>
+      <div className="min-h-screen flex items-center justify-center bg-muted dark:bg-background">
+        <Card className="w-full max-w-md border-border">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-foreground">Admin Login</CardTitle>
+            <p className="text-muted-foreground">Enter your password to access the admin panel</p>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                placeholder="Enter admin password"
-                className="h-12"
-              />
-            </div>
-            <Button
-              onClick={handleLogin}
-              className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold"
-            >
-              Login to Dashboard
-            </Button>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <Button type="submit" className="w-full bg-foreground hover:bg-muted-foreground text-background" disabled={loading}>
+                {loading ? "Logging in..." : "Login"}
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </div>
     )
   }
 
-  const stats = getStats()
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 space-y-4 lg:space-y-0">
-          <div className="flex items-center space-x-4">
-            <Logo size="md" />
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                Admin Dashboard
-              </h1>
-              <p className="text-muted-foreground">Manage your FlexiFeeds content</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  onClick={resetForm}
-                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Article
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-xl font-bold">
-                    {editingArticle ? "Edit Article" : "Create New Article"}
-                  </DialogTitle>
-                </DialogHeader>
+    <div className="min-h-screen bg-muted dark:bg-background flex">
+      <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
 
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="content">Content</TabsTrigger>
-                    <TabsTrigger value="seo" className="flex items-center gap-2">
-                      <Settings className="h-4 w-4" />
-                      SEO Settings
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="content" className="space-y-6">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="title">Title</Label>
-                          <Input
-                            id="title"
-                            value={formData.title}
-                            onChange={(e) => {
-                              setFormData({ ...formData, title: e.target.value })
-                              if (!editingArticle) {
-                                setFormData((prev) => ({ ...prev, slug: generateSlug(e.target.value) }))
-                              }
-                            }}
-                            required
-                            className="h-11"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="slug">Slug</Label>
-                          <Input
-                            id="slug"
-                            value={formData.slug}
-                            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                            required
-                            className="h-11"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="author">Author</Label>
-                          <Input
-                            id="author"
-                            value={formData.author}
-                            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                            required
-                            className="h-11"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="cover_image">Cover Image URL</Label>
-                          <Input
-                            id="cover_image"
-                            value={formData.cover_image}
-                            onChange={(e) => setFormData({ ...formData, cover_image: e.target.value })}
-                            placeholder="/placeholder.svg?height=400&width=600"
-                            className="h-11"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="summary">Summary</Label>
-                        <Textarea
-                          id="summary"
-                          value={formData.summary}
-                          onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-                          rows={3}
-                          required
-                          className="resize-none"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="tags">Tags (comma-separated)</Label>
-                        <Input
-                          id="tags"
-                          value={formData.tags}
-                          onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                          placeholder="React, Next.js, TypeScript"
-                          className="h-11"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="content">Content (Markdown)</Label>
-                        <Textarea
-                          id="content"
-                          value={formData.content}
-                          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                          rows={15}
-                          className="font-mono text-sm resize-none"
-                          required
-                        />
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="is_published"
-                          checked={formData.is_published}
-                          onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
-                        />
-                        <Label htmlFor="is_published" className="font-medium">
-                          Published
-                        </Label>
-                      </div>
-
-                      <div className="flex justify-end space-x-3 pt-4 border-t">
-                        <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button
-                          type="submit"
-                          disabled={loading}
-                          className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
-                        >
-                          {loading ? "Saving..." : editingArticle ? "Update Article" : "Create Article"}
-                        </Button>
-                      </div>
-                    </form>
-                  </TabsContent>
-
-                  <TabsContent value="seo" className="space-y-6">
-                    <SEOForm
-                      seo={formData.seo}
-                      onChange={(seo) => setFormData((prev) => ({ ...prev, seo }))}
-                      articleData={{
-                        title: formData.title,
-                        summary: formData.summary,
-                        tags: formData.tags,
-                        cover_image: formData.cover_image,
-                        slug: formData.slug,
-                      }}
-                    />
-
-                    <div className="flex justify-end space-x-3 pt-4 border-t">
-                      <Button type="button" variant="outline" onClick={() => setActiveTab("content")}>
-                        Back to Content
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
-                      >
-                        {loading ? "Saving..." : editingArticle ? "Update Article" : "Create Article"}
-                      </Button>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </DialogContent>
-            </Dialog>
-
-            <Button
-              variant="outline"
-              onClick={() => setIsAuthenticated(false)}
-              className="border-red-200 text-red-600 hover:bg-red-50"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Articles</p>
-                  <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">{stats.total}</p>
-                </div>
-                <div className="h-12 w-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <Eye className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">Published</p>
-                  <p className="text-3xl font-bold text-green-700 dark:text-green-300">{stats.published}</p>
-                </div>
-                <div className="h-12 w-12 bg-green-500 rounded-lg flex items-center justify-center">
-                  <Eye className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-orange-600 dark:text-orange-400">Drafts</p>
-                  <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">{stats.drafts}</p>
-                </div>
-                <div className="h-12 w-12 bg-orange-500 rounded-lg flex items-center justify-center">
-                  <EyeOff className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters and Search */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search articles..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 w-64"
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Filter className="h-4 w-4 text-muted-foreground" />
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as "all" | "published" | "draft")}
-                    className="px-3 py-2 border rounded-md bg-background"
-                  >
-                    <option value="all">All Articles</option>
-                    <option value="published">Published</option>
-                    <option value="draft">Drafts</option>
-                  </select>
-                </div>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Showing {filteredArticles.length} of {articles.length} articles
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Articles List */}
-        <div className="space-y-4">
-          {loading && articles.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading articles...</p>
-            </div>
-          ) : filteredArticles.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-lg font-medium mb-2">No articles found</p>
-                <p className="text-muted-foreground">
-                  {articles.length === 0
-                    ? "Create your first article to get started!"
-                    : "Try adjusting your search or filter criteria."}
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredArticles.map((article) => (
-              <Card
-                key={article.id}
-                className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-orange-500"
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start space-x-6">
-                    {/* Article Image */}
-                    <div className="relative w-32 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-800">
-                      {article.cover_image || article.image ? (
-                        <Image
-                          src={article.cover_image || article.image || "/placeholder.svg"}
-                          alt={article.title}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Article Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <h3 className="text-xl font-bold line-clamp-1">{article.title}</h3>
-                          <Badge variant={article.is_published || article.published ? "default" : "secondary"}>
-                            {article.is_published || article.published ? (
-                              <>
-                                <Eye className="h-3 w-3 mr-1" />
-                                Published
-                              </>
-                            ) : (
-                              <>
-                                <EyeOff className="h-3 w-3 mr-1" />
-                                Draft
-                              </>
-                            )}
-                          </Badge>
-                          {article.seo && Object.keys(article.seo).length > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              <Settings className="h-3 w-3 mr-1" />
-                              SEO
-                            </Badge>
-                          )}
-                        </div>
-
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(article)}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <a href={`/article/${article.slug}`} target="_blank" rel="noopener noreferrer">
-                                <Eye className="h-4 w-4 mr-2" />
-                                View
-                              </a>
-                            </DropdownMenuItem>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Article</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete "{article.title}"? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDelete(article.id)}
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-3">
-                        <span className="font-medium">{article.author}</span>
-                        <span>•</span>
-                        <span>{article.date || new Date(article.created_at || "").toLocaleDateString()}</span>
-                        <span>•</span>
-                        <span>{article.readTime || "5 min read"}</span>
-                      </div>
-
-                      <p className="text-muted-foreground text-sm mb-4 line-clamp-2 leading-relaxed">
-                        {article.summary || article.excerpt}
-                      </p>
-
-                      <div className="flex flex-wrap gap-2">
-                        {(Array.isArray(article.tags) ? article.tags : article.tags?.split(",") || [])
-                          .slice(0, 4)
-                          .map((tag, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              #{tag.trim()}
-                            </Badge>
-                          ))}
-                        {(Array.isArray(article.tags) ? article.tags : article.tags?.split(",") || []).length > 4 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{(Array.isArray(article.tags) ? article.tags : article.tags?.split(",") || []).length - 4}{" "}
-                            more
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
+      <div className="flex-1 overflow-auto">
+        <div className="p-8">
+          {activeTab === "dashboard" && <DashboardTab articles={articles} categories={categories} />}
+          {activeTab === "articles" && <ArticlesTab articles={articles} categories={categories} onRefresh={loadData} />}
+          {activeTab === "categories" && <CategoriesTab categories={categories} onRefresh={loadData} />}
+          {activeTab === "analytics" && <AnalyticsTab articles={articles} categories={categories} />}
         </div>
       </div>
     </div>

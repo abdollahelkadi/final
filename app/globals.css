@@ -6,7 +6,7 @@
   :root {
     --background: 0 0% 100%; /* White */
     --foreground: 0 0% 0%; /* Black */
-    --card: 0 0% 100%;
+    --card: 0 0% 100%; /* White card background */
     --card-foreground: 0 0% 0%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%;
@@ -29,9 +29,9 @@
   .dark {
     --background: 0 0% 0%; /* True Black */
     --foreground: 0 0% 100%; /* White */
-    --card: 0 0% 5%; /* Very dark gray */
+    --card: 0 0% 8%; /* Dark gray card background instead of very dark blue */
     --card-foreground: 0 0% 100%;
-    --popover: 0 0% 5%;
+    --popover: 0 0% 8%;
     --popover-foreground: 0 0% 100%;
     --primary: 0 0% 100%; /* White for primary actions */
     --primary-foreground: 0 0% 0%; /* Black text on white primary */
@@ -42,7 +42,7 @@
     --accent: 0 0% 15%;
     --accent-foreground: 0 0% 90%;
     --destructive: 0 62.8% 30.6%; /* Darker red for destructive actions */
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
     --border: 0 0% 25%;
     --input: 0 0% 20%;
     --ring: 0 0% 100%; /* White ring */

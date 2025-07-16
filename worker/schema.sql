@@ -45,3 +45,42 @@ To create a new Next.js 15 project:
 npx create-next-app@latest my-app --typescript --tailwind --app
 cd my-app
 npm run dev
+\`\`\`
+
+-- Create categories table
+CREATE TABLE IF NOT EXISTS categories (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT UNIQUE NOT NULL,
+  description TEXT NOT NULL,
+  cover TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert sample categories
+INSERT INTO categories (name, description, cover) VALUES
+(
+  'Technology',
+  'Latest trends and innovations in technology, programming, and digital transformation.',
+  '/placeholder.svg?height=400&width=600'
+),
+(
+  'Web Development',
+  'Frontend, backend, and full-stack web development tutorials and best practices.',
+  '/placeholder.svg?height=400&width=600'
+),
+(
+  'React',
+  'React.js tutorials, tips, and advanced concepts for modern web development.',
+  '/placeholder.svg?height=400&width=600'
+),
+(
+  'Next.js',
+  'Next.js framework guides, performance optimization, and deployment strategies.',
+  '/placeholder.svg?height=400&width=600'
+),
+(
+  'JavaScript',
+  'JavaScript fundamentals, ES6+ features, and modern development techniques.',
+  '/placeholder.svg?height=400&width=600'
+);

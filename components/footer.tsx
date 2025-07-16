@@ -3,7 +3,7 @@ import { Logo } from "@/components/ui/logo"
 
 export function Footer() {
   return (
-    <footer className="border-t bg-background">
+    <footer className="border-t bg-gradient-to-br from-muted/50 to-muted/30 dark:from-background dark:to-muted/20">
       <div className="container mx-auto px-4 py-12">
         <div className="flex flex-col items-center space-y-6">
           {/* Logo */}

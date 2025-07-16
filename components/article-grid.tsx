@@ -15,7 +15,7 @@ export function ArticleGrid({ title, articles, showViewAll, className }: Article
   return (
     <section className={cn("", className)}>
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-red-800 dark:from-gray-100 dark:to-red-400 bg-clip-text text-transparent">
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-foreground to-red-800 dark:from-foreground dark:to-red-400 bg-clip-text text-transparent">
           {title}
         </h2>
         {showViewAll && (

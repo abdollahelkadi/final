@@ -31,7 +31,7 @@ export function FeaturedArticle({ article }: FeaturedArticleProps) {
             <Badge variant="secondary">{article.category}</Badge>
           </div>
 
-          <h1 className="text-2xl lg:text-4xl font-bold mb-6 leading-tight bg-gradient-to-r from-gray-900 to-red-800 dark:from-gray-100 dark:to-red-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl lg:text-4xl font-bold mb-6 leading-tight bg-gradient-to-r from-foreground to-red-800 dark:from-foreground dark:to-red-400 bg-clip-text text-transparent">
             {article.title}
           </h1>
 

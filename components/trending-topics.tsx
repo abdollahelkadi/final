@@ -42,7 +42,7 @@ export function TrendingTopics({ articles }: TrendingTopicsProps) {
               <Badge
                 key={tag}
                 variant="outline"
-                className="hover:bg-blue-100 hover:text-blue-800 hover:border-blue-300 dark:hover:bg-blue-900 dark:hover:text-blue-200 dark:hover:border-blue-700 transition-all duration-300 cursor-pointer"
+                className="hover:bg-orange-100 hover:text-orange-800 hover:border-orange-300 dark:hover:bg-orange-900/20 dark:hover:text-orange-200 dark:hover:border-orange-700 transition-all duration-300 cursor-pointer"
               >
                 #{tag}
               </Badge>

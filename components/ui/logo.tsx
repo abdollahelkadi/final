@@ -14,6 +14,18 @@ const sizeClasses = {
   lg: "h-12 w-12",
 }
 
+const colorClasses = {
+  default: "from-orange-500 via-red-500 to-pink-500",
+  white: "from-white via-background to-background",
+  dark: "from-foreground via-muted to-muted-foreground",
+}
+
+const textColorClasses = {
+  default: "from-orange-600 via-red-600 to-pink-600",
+  white: "text-white",
+  dark: "from-foreground via-muted to-muted-foreground",
+}
+
 export function Logo({ size = "md", className }: LogoProps) {
   return (
     <div className={cn("relative", sizeClasses[size], className)}>

@@ -12,7 +12,7 @@ export function HtmlRenderer({ content }: HtmlRendererProps) {
         // Add responsive classes to images
         .replace(
           /<img([^>]*)>/gi,
-          '<img$1 class="w-full h-auto rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 mb-6" loading="lazy">',
+          '<img$1 class="w-full h-auto rounded-lg shadow-lg border border-border mb-6" loading="lazy">',
         )
 
         // Style headings

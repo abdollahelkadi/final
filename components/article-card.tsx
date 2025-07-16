@@ -26,7 +26,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
           {/* Category Badge */}
           <Badge
             variant="secondary"
-            className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-900 transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground"
+            className="bg-background/90 backdrop-blur-sm text-foreground transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground"
           >
             {article.category}
           </Badge>

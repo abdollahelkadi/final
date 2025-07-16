@@ -137,7 +137,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
         <div className="min-h-screen bg-background">
           {/* Clean Hero Section */}
-          <div className="relative h-[50vh] min-h-80 overflow-hidden">
+          <div className="relative h-[40vh] min-h-64 overflow-hidden">
             <Image
               src={article.image || "/placeholder.svg"}
               alt={article.title}
@@ -149,17 +149,17 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent dark:from-background/90 dark:via-background/40" />
 
             <div className="absolute inset-0 flex items-end">
-              <div className="container mx-auto px-4 pb-8">
-                <Button variant="ghost" asChild className="mb-6 text-foreground hover:bg-accent">
+              <div className="container mx-auto px-4 pb-6">
+                <Button variant="ghost" asChild className="mb-4 text-foreground hover:bg-accent">
                   <Link href="/">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back to Home
                   </Link>
                 </Button>
 
-                <Badge className="mb-4 bg-primary text-primary-foreground">{article.category}</Badge>
+                <Badge className="mb-2 bg-primary text-primary-foreground">{article.category}</Badge>
 
-                <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4 leading-tight max-w-4xl">
+                <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-2 leading-tight max-w-4xl">
                   {article.title}
                 </h1>
               </div>
@@ -167,12 +167,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
 
           {/* Main Content Layout */}
-          <div className="container mx-auto px-4 py-8">
-            <div className="flex flex-col lg:flex-row gap-8">
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex flex-col lg:flex-row gap-6">
               {/* Left Content - Article */}
-              <div className="lg:w-2/3 space-y-8">
+              <div className="lg:w-2/3 space-y-6">
                 {/* Article Meta */}
-                <div className="flex items-center space-x-6 text-sm text-muted-foreground border-b pb-6">
+                <div className="flex items-center space-x-6 text-sm text-muted-foreground border-b pb-4">
                   <div className="flex items-center space-x-2">
                     <User className="h-4 w-4" />
                     <span className="font-medium text-foreground">{article.author}</span>
@@ -188,7 +188,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 </div>
 
                 {/* Article Excerpt */}
-                <div className="text-lg text-muted-foreground leading-relaxed border-l-4 border-primary pl-6">
+                <div className="text-lg text-muted-foreground leading-relaxed border-l-4 border-primary pl-6 mb-2">
                   {article.excerpt}
                 </div>
 
@@ -199,7 +199,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
                 {/* Article Tags */}
                 {article.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-6 border-t">
+                  <div className="flex flex-wrap gap-2 pt-4 border-t">
                     <span className="text-sm font-medium text-muted-foreground mr-2">Tags:</span>
                     {article.tags.map((tag, index) => (
                       <Badge key={index} variant="outline" className="text-xs">
@@ -212,7 +212,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
               {/* Right Sidebar - Static */}
               <div className="lg:w-1/3">
-                <div className="sticky top-24 space-y-6">
+                <div className="sticky top-20 space-y-4">
                   {/* Article Stats */}
                   <Card>
                     <CardHeader>
@@ -221,7 +221,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                         Article Stats
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Views</span>
                         <span className="font-semibold">1,234</span>
@@ -250,7 +250,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         <h4 className="font-semibold text-foreground">{article.author}</h4>
                         <p className="text-sm text-muted-foreground">
                           Experienced writer specializing in {article.category.toLowerCase()} topics with a passion for
@@ -273,7 +273,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                           Related Articles
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="space-y-2">
                         {relatedArticles.slice(0, 3).map((relatedArticle) => (
                           <Link
                             key={relatedArticle.id}
@@ -304,12 +304,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
                   {/* Category Badge */}
                   <Card>
-                    <CardContent className="pt-6">
+                    <CardContent className="pt-4">
                       <div className="text-center">
                         <Badge variant="outline" className="text-sm px-4 py-2">
                           #{article.category}
                         </Badge>
-                        <p className="text-xs text-muted-foreground mt-2">Explore more articles in this category</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Explore more articles in this category
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
