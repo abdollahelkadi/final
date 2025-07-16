@@ -53,7 +53,7 @@ app.get("/api/articles", async (c) => {
 
     console.log("Querying database for published articles")
     const { results } = await c.env.DB.prepare(`
-      SELECT id, slug, title, author, summary, tags, cover_image, created_at, updated_at
+      SELECT id, slug, title, author, summary, tags, cover_image, seo, created_at, updated_at
       FROM articles 
       WHERE is_published = 1 
       ORDER BY created_at DESC
@@ -183,7 +183,7 @@ app.post("/api/admin/articles", adminAuth, async (c) => {
     c.header("Cache-Control", "no-cache, no-store, must-revalidate")
 
     const body = await c.req.json()
-    const { slug, title, author, content, summary, tags, cover_image, is_published } = body
+    const { slug, title, author, content, summary, tags, cover_image, is_published, seo } = body
 
     // Check if slug already exists
     const existing = await c.env.DB.prepare(`
@@ -200,10 +200,10 @@ app.post("/api/admin/articles", adminAuth, async (c) => {
     const now = new Date().toISOString()
 
     const result = await c.env.DB.prepare(`
-      INSERT INTO articles (slug, title, author, content, summary, tags, cover_image, is_published, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO articles (slug, title, author, content, summary, tags, cover_image, seo, is_published, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
-      .bind(slug, title, author, content, summary, tagsString, cover_image || null, is_published ? 1 : 0, now, now)
+      .bind(slug, title, author, content, summary, tagsString, cover_image || null, seo || null, is_published ? 1 : 0, now, now)
       .run()
 
     return c.json({
@@ -223,7 +223,7 @@ app.put("/api/admin/articles/:id", adminAuth, async (c) => {
 
     const id = c.req.param("id")
     const body = await c.req.json()
-    const { slug, title, author, content, summary, tags, cover_image, is_published } = body
+    const { slug, title, author, content, summary, tags, cover_image, is_published, seo } = body
 
     // Check if slug already exists for different article
     const existing = await c.env.DB.prepare(`
@@ -241,10 +241,10 @@ app.put("/api/admin/articles/:id", adminAuth, async (c) => {
 
     await c.env.DB.prepare(`
       UPDATE articles 
-      SET slug = ?, title = ?, author = ?, content = ?, summary = ?, tags = ?, cover_image = ?, is_published = ?, updated_at = ?
+      SET slug = ?, title = ?, author = ?, content = ?, summary = ?, tags = ?, cover_image = ?, seo = ?, is_published = ?, updated_at = ?
       WHERE id = ?
     `)
-      .bind(slug, title, author, content, summary, tagsString, cover_image || null, is_published ? 1 : 0, now, id)
+      .bind(slug, title, author, content, summary, tagsString, cover_image || null, seo || null, is_published ? 1 : 0, now, id)
       .run()
 
     return c.json({ message: "Article updated successfully" })

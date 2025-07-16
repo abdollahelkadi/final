@@ -1,6 +1,20 @@
 // API configuration - Update this to match your actual worker URL
 const API_BASE_URL = "https://api.flexifeeds.me"
 
+export interface SEOData {
+  title?: string
+  description?: string
+  keywords?: string
+  og_title?: string
+  og_description?: string
+  og_image?: string
+  twitter_title?: string
+  twitter_description?: string
+  twitter_image?: string
+  canonical_url?: string
+  robots?: string
+}
+
 export interface Article {
   id: string
   slug: string
@@ -20,6 +34,7 @@ export interface Article {
   date: string
   readTime: string
   category: string
+  seo?: SEOData
 }
 
 // Enhanced fetch with better error handling and retries (no caching)
@@ -126,6 +141,7 @@ function transformArticle(apiArticle: any): Article {
         : typeof apiArticle.tags === "string" && apiArticle.tags
           ? apiArticle.tags.split(",")[0].trim()
           : "General"),
+    seo: apiArticle.seo ? JSON.parse(apiArticle.seo) : undefined,
   }
 }
 
@@ -186,6 +202,38 @@ export async function fetchArticleBySlug(slug: string): Promise<Article | null> 
   }
 }
 
+// Fetch article slugs for sitemap
+export async function fetchArticleSlugs(): Promise<string[]> {
+  try {
+    console.log("Fetching article slugs for sitemap")
+
+    const response = await fetchWithRetry(`${API_BASE_URL}/api/articles/slugs`, {
+      method: "GET",
+    })
+
+    const data = await response.json()
+    console.log("Article slugs API response:", data)
+
+    if (!data.slugs || !Array.isArray(data.slugs)) {
+      // Fallback: fetch all articles and extract slugs
+      const articles = await fetchArticles()
+      return articles.filter((article) => article.published).map((article) => article.slug)
+    }
+
+    return data.slugs
+  } catch (error) {
+    console.error("Error fetching article slugs:", error)
+    // Fallback: fetch all articles and extract slugs
+    try {
+      const articles = await fetchArticles()
+      return articles.filter((article) => article.published).map((article) => article.slug)
+    } catch (fallbackError) {
+      console.error("Fallback error:", fallbackError)
+      return []
+    }
+  }
+}
+
 // Admin API functions
 export async function fetchAdminArticles(password: string): Promise<Article[]> {
   try {
@@ -232,6 +280,7 @@ export async function createArticle(password: string, articleData: any): Promise
       tags: Array.isArray(articleData.tags) ? articleData.tags.join(", ") : articleData.tags,
       cover_image: articleData.cover_image || null,
       is_published: articleData.is_published ? 1 : 0,
+      seo: articleData.seo ? JSON.stringify(articleData.seo) : null,
     }
 
     console.log("Create article payload:", payload)
@@ -265,6 +314,7 @@ export async function updateArticle(password: string, id: string, articleData: a
       tags: Array.isArray(articleData.tags) ? articleData.tags.join(", ") : articleData.tags,
       cover_image: articleData.cover_image || null,
       is_published: articleData.is_published ? 1 : 0,
+      seo: articleData.seo ? JSON.stringify(articleData.seo) : null,
     }
 
     console.log("Update article payload:", payload)

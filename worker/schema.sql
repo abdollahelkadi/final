@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS articles (
   summary TEXT NOT NULL,
   tags TEXT,
   cover_image TEXT,
+  seo TEXT,
   is_published INTEGER DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -40,7 +41,7 @@ The App Router has been enhanced with better file-based routing and improved dev
 
 To create a new Next.js 15 project:
 
-```bash
+\`\`\`bash
 npx create-next-app@latest my-app --typescript --tailwind --app
 cd my-app
 npm run dev

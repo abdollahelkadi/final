@@ -15,4 +15,3 @@ ADMIN_PASSWORD = "123"
 [[routes]]
 pattern = "api.flexifeeds.me/*"
 zone_name = "flexifeeds.me"
-

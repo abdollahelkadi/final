@@ -59,7 +59,7 @@ export function ArticleCard({ article, variant = "default" }: ArticleCardProps) 
 
           {/* Floating Badges */}
           <div className="absolute top-4 left-4 flex space-x-2">
-            <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">Featured</Badge>
+            {/* Featured badge removed as per schema update */}
             <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-gray-900">
               {article.category}
             </Badge>

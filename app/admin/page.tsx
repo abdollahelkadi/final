@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,12 +23,26 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Plus, Edit, Trash2, Eye, EyeOff, LogOut, Search, Filter, MoreHorizontal, ImageIcon } from "lucide-react"
-import { fetchAdminArticles, createArticle, updateArticle, deleteArticle, type Article } from "@/lib/api"
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
+  LogOut,
+  Search,
+  Filter,
+  MoreHorizontal,
+  ImageIcon,
+  Settings,
+} from "lucide-react"
+import { fetchAdminArticles, createArticle, updateArticle, deleteArticle, type Article, type SEOData } from "@/lib/api"
 import { toast } from "sonner"
 import { Logo } from "@/components/ui/logo"
 import Image from "next/image"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { SEOForm } from "@/components/seo/seo-form"
+import { generateAutoSEO } from "@/lib/seo"
 
 // Required for Cloudflare Pages
 export const runtime = "edge"
@@ -42,6 +57,7 @@ export default function AdminPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all")
+  const [activeTab, setActiveTab] = useState("content")
 
   const [formData, setFormData] = useState({
     title: "",
@@ -52,6 +68,7 @@ export default function AdminPage() {
     tags: "",
     cover_image: "",
     is_published: false,
+    seo: {} as SEOData,
   })
 
   // Filter articles based on search and status
@@ -143,6 +160,7 @@ export default function AdminPage() {
       tags: Array.isArray(article.tags) ? article.tags.join(", ") : article.tags?.toString() || "",
       cover_image: article.cover_image || article.image || "",
       is_published: article.is_published === 1 || article.published,
+      seo: article.seo || {},
     })
     setIsDialogOpen(true)
   }
@@ -170,8 +188,10 @@ export default function AdminPage() {
       tags: "",
       cover_image: "",
       is_published: false,
+      seo: {},
     })
     setEditingArticle(null)
+    setActiveTab("content")
   }
 
   const generateSlug = (title: string) => {
@@ -179,6 +199,22 @@ export default function AdminPage() {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "")
+  }
+
+  const handleAutoGenerateSEO = () => {
+    if (formData.title && formData.summary) {
+      const autoSEO = generateAutoSEO({
+        title: formData.title,
+        summary: formData.summary,
+        tags: formData.tags,
+        cover_image: formData.cover_image,
+        slug: formData.slug,
+      })
+      setFormData((prev) => ({ ...prev, seo: autoSEO }))
+      toast.success("SEO auto-generated successfully")
+    } else {
+      toast.error("Please fill in title and summary first")
+    }
   }
 
   const getStats = () => {
@@ -251,123 +287,164 @@ export default function AdminPage() {
                   New Article
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-bold">
                     {editingArticle ? "Edit Article" : "Create New Article"}
                   </DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="title">Title</Label>
-                      <Input
-                        id="title"
-                        value={formData.title}
-                        onChange={(e) => {
-                          setFormData({ ...formData, title: e.target.value })
-                          if (!editingArticle) {
-                            setFormData((prev) => ({ ...prev, slug: generateSlug(e.target.value) }))
-                          }
-                        }}
-                        required
-                        className="h-11"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="slug">Slug</Label>
-                      <Input
-                        id="slug"
-                        value={formData.slug}
-                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                        required
-                        className="h-11"
-                      />
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="author">Author</Label>
-                      <Input
-                        id="author"
-                        value={formData.author}
-                        onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                        required
-                        className="h-11"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cover_image">Cover Image URL</Label>
-                      <Input
-                        id="cover_image"
-                        value={formData.cover_image}
-                        onChange={(e) => setFormData({ ...formData, cover_image: e.target.value })}
-                        placeholder="/placeholder.svg?height=400&width=600"
-                        className="h-11"
-                      />
-                    </div>
-                  </div>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="content">Content</TabsTrigger>
+                    <TabsTrigger value="seo" className="flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      SEO Settings
+                    </TabsTrigger>
+                  </TabsList>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="summary">Summary</Label>
-                    <Textarea
-                      id="summary"
-                      value={formData.summary}
-                      onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-                      rows={3}
-                      required
-                      className="resize-none"
+                  <TabsContent value="content" className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="title">Title</Label>
+                          <Input
+                            id="title"
+                            value={formData.title}
+                            onChange={(e) => {
+                              setFormData({ ...formData, title: e.target.value })
+                              if (!editingArticle) {
+                                setFormData((prev) => ({ ...prev, slug: generateSlug(e.target.value) }))
+                              }
+                            }}
+                            required
+                            className="h-11"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="slug">Slug</Label>
+                          <Input
+                            id="slug"
+                            value={formData.slug}
+                            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                            required
+                            className="h-11"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="author">Author</Label>
+                          <Input
+                            id="author"
+                            value={formData.author}
+                            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                            required
+                            className="h-11"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cover_image">Cover Image URL</Label>
+                          <Input
+                            id="cover_image"
+                            value={formData.cover_image}
+                            onChange={(e) => setFormData({ ...formData, cover_image: e.target.value })}
+                            placeholder="/placeholder.svg?height=400&width=600"
+                            className="h-11"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="summary">Summary</Label>
+                        <Textarea
+                          id="summary"
+                          value={formData.summary}
+                          onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+                          rows={3}
+                          required
+                          className="resize-none"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="tags">Tags (comma-separated)</Label>
+                        <Input
+                          id="tags"
+                          value={formData.tags}
+                          onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                          placeholder="React, Next.js, TypeScript"
+                          className="h-11"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="content">Content (Markdown)</Label>
+                        <Textarea
+                          id="content"
+                          value={formData.content}
+                          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                          rows={15}
+                          className="font-mono text-sm resize-none"
+                          required
+                        />
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="is_published"
+                          checked={formData.is_published}
+                          onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
+                        />
+                        <Label htmlFor="is_published" className="font-medium">
+                          Published
+                        </Label>
+                      </div>
+
+                      <div className="flex justify-end space-x-3 pt-4 border-t">
+                        <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={loading}
+                          className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                        >
+                          {loading ? "Saving..." : editingArticle ? "Update Article" : "Create Article"}
+                        </Button>
+                      </div>
+                    </form>
+                  </TabsContent>
+
+                  <TabsContent value="seo" className="space-y-6">
+                    <SEOForm
+                      seo={formData.seo}
+                      onChange={(seo) => setFormData((prev) => ({ ...prev, seo }))}
+                      articleData={{
+                        title: formData.title,
+                        summary: formData.summary,
+                        tags: formData.tags,
+                        cover_image: formData.cover_image,
+                        slug: formData.slug,
+                      }}
                     />
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="tags">Tags (comma-separated)</Label>
-                    <Input
-                      id="tags"
-                      value={formData.tags}
-                      onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                      placeholder="React, Next.js, TypeScript"
-                      className="h-11"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="content">Content (Markdown)</Label>
-                    <Textarea
-                      id="content"
-                      value={formData.content}
-                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                      rows={15}
-                      className="font-mono text-sm resize-none"
-                      required
-                    />
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="is_published"
-                      checked={formData.is_published}
-                      onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
-                    />
-                    <Label htmlFor="is_published" className="font-medium">
-                      Published
-                    </Label>
-                  </div>
-
-                  <div className="flex justify-end space-x-3 pt-4 border-t">
-                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
-                    >
-                      {loading ? "Saving..." : editingArticle ? "Update Article" : "Create Article"}
-                    </Button>
-                  </div>
-                </form>
+                    <div className="flex justify-end space-x-3 pt-4 border-t">
+                      <Button type="button" variant="outline" onClick={() => setActiveTab("content")}>
+                        Back to Content
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                      >
+                        {loading ? "Saving..." : editingArticle ? "Update Article" : "Create Article"}
+                      </Button>
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </DialogContent>
             </Dialog>
 
@@ -522,6 +599,12 @@ export default function AdminPage() {
                               </>
                             )}
                           </Badge>
+                          {article.seo && Object.keys(article.seo).length > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              <Settings className="h-3 w-3 mr-1" />
+                              SEO
+                            </Badge>
+                          )}
                         </div>
 
                         <DropdownMenu>
