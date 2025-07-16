@@ -6,7 +6,12 @@ import { Input } from "@/components/ui/input"
 
 export function Footer() {
   return (
-    <footer className="border-t bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <footer className="relative border-t overflow-hidden">
+      {/* Animated Gradient Background */}
+      <div
+        className="absolute inset-0 -z-10 animate-footer-gradient bg-footer-gradient dark:bg-footer-gradient-dark"
+        aria-hidden="true"
+      />
       <div className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand Section */}
