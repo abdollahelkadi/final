@@ -1,22 +1,7 @@
-"use client"
-
 import Link from "next/link"
 import { Logo } from "@/components/ui/logo"
-import { useTheme } from "next-themes"
-import { useState, useEffect } from "react"
 
 export function Footer() {
-  const { resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted || !resolvedTheme) {
-    return null
-  }
-
   return (
     <footer className="border-t bg-gradient-to-br from-muted/50 to-muted/30 dark:from-background dark:to-muted/20">
       <div className="container mx-auto px-4 py-6">

@@ -203,30 +203,6 @@
     background: rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
-
-  /* Footer animated gradient backgrounds */
-  .bg-footer-gradient {
-    background: linear-gradient(120deg, #fff7e6, #ffe6e6, #fbefff, #e6f7ff, #fff7e6);
-    background-size: 400% 400%;
-  }
-  .dark .bg-footer-gradient-dark {
-    background: linear-gradient(120deg, #1a1a2e, #232946, #2c394b, #22223b, #1a1a2e);
-    background-size: 400% 400%;
-  }
-  .animate-footer-gradient {
-    animation: footer-gradient-flow 16s ease-in-out infinite;
-  }
-  @keyframes footer-gradient-flow {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
 }
 
 /* Custom selection colors */

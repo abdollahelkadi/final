@@ -26,7 +26,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
           {/* Category Badge */}
           <Badge
             variant="secondary"
-            className="bg-background/90 backdrop-blur-sm text-foreground transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground"
+            className="absolute top-3 left-3 bg-background/90 backdrop-blur-sm text-foreground transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground"
           >
             {article.category}
           </Badge>
@@ -40,19 +40,6 @@ export function ArticleCard({ article }: ArticleCardProps) {
         </div>
 
         <div className="p-6">
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-3">
-            {article.tags.slice(0, 2).map((tag) => (
-              <Badge
-                key={tag}
-                variant="outline"
-                className="text-xs hover:bg-primary/10 hover:border-primary/30 transition-colors cursor-pointer"
-              >
-                #{tag}
-              </Badge>
-            ))}
-          </div>
-
           {/* Title */}
           <h3 className="font-bold text-lg mb-3 line-clamp-2 group-hover:text-primary transition-colors duration-300 leading-tight">
             {article.title}
@@ -73,7 +60,6 @@ export function ArticleCard({ article }: ArticleCardProps) {
                 <span>{article.date}</span>
               </div>
             </div>
-
             <div className="flex items-center space-x-1">
               <Clock className="h-3 w-3" />
               <span>{article.readTime}</span>

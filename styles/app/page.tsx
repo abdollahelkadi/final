@@ -180,7 +180,7 @@ function ArticlesContent() {
         {/* Featured Article Hero */}
         {featuredArticle && (
           <div className="animate-in slide-in-from-bottom-4 duration-1000 delay-300">
-            <ArticleCard article={featuredArticle} variant="featured" />
+            <ArticleCard article={featuredArticle} />
           </div>
         )}
       </section>
@@ -213,7 +213,7 @@ function ArticlesContent() {
                 className="animate-in slide-in-from-bottom-4 duration-700"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <ArticleCard article={article} variant="compact" />
+                <ArticleCard article={article} />
               </div>
             ))}
           </div>
