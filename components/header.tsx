@@ -22,25 +22,28 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center group">
-            <Logo size="lg" className="transition-transform duration-300 group-hover:scale-105" />
-          </Link>
+        <div className="flex h-14 items-center justify-between">
+          {/* Left: Logo + Navigation */}
+          <div className="flex items-center space-x-8">
+            {/* Logo */}
+            <Link href="/" className="flex items-center group">
+              <Logo size="2xl" className="transition-transform duration-300 group-hover:scale-105" />
+            </Link>
 
-          {/* Desktop Navigation - adjusted margin */}
-          <nav className="hidden lg:flex items-center space-x-8 -ml-32">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 group"
-              >
-                {item.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-foreground transition-all duration-300 group-hover:w-full" />
-              </Link>
-            ))}
-          </nav>
+            {/* Desktop Navigation - moved next to logo */}
+            <nav className="hidden lg:flex items-center space-x-8">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300 group"
+                >
+                  {item.label}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-foreground transition-all duration-300 group-hover:w-full" />
+                </Link>
+              ))}
+            </nav>
+          </div>
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">

@@ -95,7 +95,7 @@ export default function RootLayout({
         <StructuredData type="organization" />
       </head>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <div className="min-h-screen flex flex-col">
             <Header />
             <main className="flex-1">{children}</main>
