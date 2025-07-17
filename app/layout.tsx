@@ -7,6 +7,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Toaster } from "sonner"
 import { StructuredData } from "@/components/seo/structured-data"
+import { GoogleAnalytics } from "@/components/google-analytics"
 import { seoConfig } from "@/lib/seo"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -105,6 +106,7 @@ export default function RootLayout({
         <StructuredData type="organization" />
       </head>
       <body className={inter.className}>
+        <GoogleAnalytics />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <div className="min-h-screen flex flex-col">
             <Header />

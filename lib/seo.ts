@@ -10,6 +10,7 @@ export interface SEOConfig {
   facebookAppId?: string
   author: string
   keywords: string[]
+  googleAnalyticsId?: string
 }
 
 export const seoConfig: SEOConfig = {
@@ -22,6 +23,7 @@ export const seoConfig: SEOConfig = {
   twitterHandle: "@flexifeeds",
   author: "FlexiFeeds Team",
   keywords: ["technology", "programming", "web development", "tutorials", "tech news", "coding", "software"],
+  googleAnalyticsId: "G-85B8N58C5Z",
 }
 
 // Generate SEO data for home page
