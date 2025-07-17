@@ -20,7 +20,7 @@ export const seoConfig: SEOConfig = {
   defaultTitle: "FlexiFeeds - Modern Blog Platform for Technology Articles",
   defaultDescription:
     "Discover the latest technology articles, tutorials, and insights on FlexiFeeds. Your go-to source for web development, programming, and tech trends.",
-  defaultImage: "/logo.png",
+  defaultImage: "/android-chrome-512x512.png",
   twitterHandle: "@flexifeeds",
   author: "FlexiFeeds Team",
   keywords: ["technology", "programming", "web development", "tutorials", "tech news", "coding", "software"],
