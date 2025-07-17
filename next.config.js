@@ -97,6 +97,16 @@ const nextConfig = {
           },
         ],
       },
+      // Ensure favicons are cached properly
+      {
+        source: "/(favicon.ico|favicon.png|apple-touch-icon.png)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400",
+          }
+        ]
+      }
     ]
   },
 

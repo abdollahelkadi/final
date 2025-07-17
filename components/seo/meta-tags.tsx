@@ -59,9 +59,11 @@ export function MetaTags({ seo, type = "website", publishedTime, modifiedTime, a
       <meta name="language" content="English" />
       <meta name="revisit-after" content="7 days" />
 
-      {/* Favicon and Icons */}
+      {/* Favicon and Icons - These will be provided by layout.tsx */}
+      {/* They are commented out here to avoid duplicates with the ones in layout.tsx */}
+      {/* <link rel="icon" href="/favicon.ico" />
       <link rel="icon" type="image/png" href="/favicon.png" />
-      <link rel="apple-touch-icon" href="/logo.png" />
+      <link rel="apple-touch-icon" href="/apple-touch-icon.png" /> */}
 
       {/* Additional SEO enhancements */}
       <meta name="theme-color" content="#f97316" />

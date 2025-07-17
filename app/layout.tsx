@@ -74,6 +74,15 @@ export const metadata: Metadata = {
   applicationName: seoConfig.siteName,
   referrer: "origin-when-cross-origin",
   category: "technology",
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon.png', type: 'image/png' }
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', type: 'image/png' }
+    ],
+  }
 }
 
 export default function RootLayout({
@@ -84,8 +93,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" href="/favicon.png" />
-        <link rel="apple-touch-icon" href="/logo.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#f97316" />
         <meta name="msapplication-TileColor" content="#f97316" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />

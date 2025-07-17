@@ -32,7 +32,7 @@ export default function SearchPage() {
 function SearchPageClient() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '')
+  const [searchQuery, setSearchQuery] = useState(searchParams?.get('q') || '')
   const [articles, setArticles] = useState<Article[]>([])
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
