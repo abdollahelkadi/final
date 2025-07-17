@@ -8,6 +8,7 @@ import { Footer } from "@/components/footer"
 import { Toaster } from "sonner"
 import { StructuredData } from "@/components/seo/structured-data"
 import { GoogleAnalytics } from "@/components/google-analytics"
+import { GoogleAdSense } from "@/components/google-adsense"
 import { seoConfig } from "@/lib/seo"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -100,6 +101,9 @@ export default function RootLayout({
         <meta name="theme-color" content="#f97316" />
         <meta name="msapplication-TileColor" content="#f97316" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        {/* Google AdSense */}
+        <GoogleAdSense />
 
         {/* Structured Data */}
         <StructuredData type="website" />

@@ -11,6 +11,7 @@ export interface SEOConfig {
   author: string
   keywords: string[]
   googleAnalyticsId?: string
+  googleAdsenseId?: string
 }
 
 export const seoConfig: SEOConfig = {
@@ -24,6 +25,7 @@ export const seoConfig: SEOConfig = {
   author: "FlexiFeeds Team",
   keywords: ["technology", "programming", "web development", "tutorials", "tech news", "coding", "software"],
   googleAnalyticsId: "G-85B8N58C5Z",
+  googleAdsenseId: "ca-pub-9809097392553660",
 }
 
 // Generate SEO data for home page
