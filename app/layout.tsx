@@ -78,11 +78,10 @@ export const metadata: Metadata = {
   category: "technology",
   icons: {
     icon: [
-      { url: '/favicon.ico' },
-      { url: '/favicon.png', type: 'image/png' }
+      { url: '/favicon.ico?v=2' }
     ],
     apple: [
-      { url: '/apple-touch-icon.png', type: 'image/png' }
+      { url: '/favicon.ico?v=2', type: 'image/x-icon' }
     ],
   }
 }
@@ -95,15 +94,23 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" type="image/png" href="/favicon.png" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
+        <link rel="apple-touch-icon" href="/favicon.ico?v=2" />
+        {/* Removed favicon.png and apple-touch-icon.png links */}
         <meta name="theme-color" content="#f97316" />
         <meta name="msapplication-TileColor" content="#f97316" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
         {/* Google AdSense */}
         <GoogleAdSense />
+        {/* AdSense script for direct integration */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9809097392553660"
+          crossOrigin="anonymous"
+        ></script>
+        {/* AdSense meta tag */}
+        <meta name="google-adsense-account" content="ca-pub-9809097392553660" />
 
         {/* Structured Data */}
         <StructuredData type="website" />
@@ -123,3 +130,4 @@ export default function RootLayout({
     </html>
   )
 }
+

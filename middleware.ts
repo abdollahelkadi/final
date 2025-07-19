@@ -23,9 +23,10 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - favicon.png (favicon file)
+     * - favicon.ico?v=2 (cache-busted favicon)
      * - apple-touch-icon.png (Apple touch icon)
      * - site.webmanifest (Web App Manifest)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|favicon.png|apple-touch-icon.png|site.webmanifest).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|favicon.png|favicon.ico\\?v=2|apple-touch-icon.png|site.webmanifest).*)',
   ],
 }
