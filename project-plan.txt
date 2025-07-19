@@ -1,0 +1,39 @@
+Project Plan for Blog Website Worker
+
+1. Add Comments Feature
+   - Implement endpoints for users to post, view, and delete comments on articles.
+   - Store comments in a new database table (e.g., 'comments') with fields: id, article_id, author, content, created_at.
+   - Add moderation options for admin (approve/delete).
+
+2. Add Likes Feature
+   - Implement endpoints to allow users to like articles.
+   - Store likes in a new table (e.g., 'likes') with fields: id, article_id, user_id, created_at.
+   - Prevent multiple likes from the same user (use IP or user identifier).
+
+3. Worker Limits & Security
+   - Add rate limiting middleware to restrict requests per IP/user (e.g., max 100 requests/hour).
+   - Add request timeout (e.g., 5 seconds) to prevent abuse.
+   - Log suspicious activity and block repeated offenders.
+   - Consider using CAPTCHA for sensitive actions.
+
+4. Add Pages (Contact, About, etc.)
+   - Create endpoints to serve static content for pages like /about, /contact, /privacy, /terms.
+   - Store page content in the database or as static files.
+
+5. Link Social Media
+   - Add fields in the site config for social media URLs (Twitter, Facebook, LinkedIn, Instagram).
+   - Display social media links in the footer and about page.
+   - Optionally, add Open Graph tags for better sharing.
+
+6. Write a Lot of Articles
+   - Populate the database with many sample articles covering various topics.
+   - Use scripts or admin endpoints to bulk import articles.
+   - Ensure articles have proper tags, summaries, and images.
+
+7. Additional Recommendations
+   - Use strong admin passwords and rotate regularly.
+   - Implement logging and monitoring for worker health.
+   - Add SEO enhancements (structured data, meta tags).
+   - Regularly backup the database.
+
+End of Plan.
